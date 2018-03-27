@@ -7,9 +7,12 @@ public class HammingCode {
 	public static void encode(String message, String filename) {
 		String result = "";
 		for(int i = 0; i<message.length(); i++) {
-			String temp = Integer.toBinaryString(message.charAt(i));
-			String h1 = parity(temp.substring(0,3));
-			String h2 = parity(temp.substring(4,7));
+			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
+			String t1 = temp.substring(0,4);
+			String t2 = temp.substring(4, 8);
+			
+			String h1 = parity(t1);
+			String h2 = parity(t2);
 			result += h1+h2;
 			}
 		
