@@ -1,15 +1,16 @@
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class HammingCode {
 	
 	public static void encode(String message, String filename) {
 		String result = "";
 		for(int i = 0; i<message.length(); i++) {
+			//legge il carattere in posizione i, lo converte in una stringa binaria lunga 8 caratteri, aggiunge zeri all'inizio della stringa se più corta
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
 			result += encodeBits(temp.substring(0,4)) + encodeBits(temp.substring(4,8));
 			}
@@ -23,58 +24,55 @@ public class HammingCode {
 	}
 	
 	public static String decode(String filename) {
-		
-		//Buffered Reader per leggere cosa c'� nel file
-		
-		BufferedReader br = null;
-		//Stringa che contiene il contenuto del file
-		String content = "";
-		
+        String content = "";
+        String result = "";
 		try {
-			br = new BufferedReader(new FileReader(filename));
-			
-			String contentLine = br.readLine();
-			
-			while (contentLine !=null) {
-				content += contentLine;
-				contentLine = br.readLine();
+			//più compatto per leggere tutto il file in una volta sola e farlo diventare una stringa, senza dover iterare riga per riga
+			content = new String(Files.readAllBytes(Paths.get(filename)));
+			if (content.length() % 7 != 0) {
+				// TODO throw exception/error: se la lunghezza della stringa non è multipla di 7
 			}
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		finally {
-			try {
-				if(br != null) {
-					br.close();
-				}
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
+
+//		//loop per iterare lungo la stringa e cominciare a decodificare
+//		for(int j = 0; j<content.length(); j++) {
+//			
+//			String tmpStr = "";
+//			
+//			//finch� j non � multiplo di 6 aggiungo i caratteri che trovo
+//			//ad una stringa temporanea.
+//			//faccio il check degli errori
+//			//decodifico
+//			
+//			if ((j%6 != 0) && (j != 0)) {
+//				tmpStr += content.charAt(j);
+//				//guardalo dopo
+//				String string_without_error = errorCorrector(tmpStr);
+//			} 
+//			
+//			if(j%6 == 0){
+//				tmpStr = "";
+//			}
+//		}
+		
+		//problema con il codice sopra (che ho commentato):
+		//modulo 6 -> vuol dire che legge 6 caratteri (non 7) e salta il primo perché 0%6=0 quindi non entra nell'if
+		//propongo di fare così:
+		//finché la stringa content non è vuota:
+		//	temp = leggi i primi 7 caratteri di content,
+		//	fai cose (decodifica, correzione degli errori, concateni il risultato a result)
+		//	modifichi content: content MENO i primi 7 caratteri
+		String temp = "";
+		while (content.length() != 0) {
+			temp = content.substring(0,7);
+			// TODO do stuff with temp
+			content = content.substring(7);
 		}
 		
-		//loop per iterare lungo la stringa e cominciare a decodificare
-		for(int j = 0; j<content.length(); j++) {
-			
-			String tmpStr = "";
-			
-			//finch� j non � multiplo di 6 aggiungo i caratteri che trovo
-			//ad una stringa temporanea.
-			//faccio il check degli errori
-			//decodifico
-			if ((j%6 != 0) && (j != 0)) {
-				tmpStr += content.charAt(j);
-				//guardalo dopo
-				String string_without_error = errorCorrector(tmpStr);
-			} 
-			
-			if(j%6 == 0){
-				tmpStr = "";
-			}
-		}
-		
-		return content;
+		return result;
 	}
 	
 	private static String encodeBits(String data) {
