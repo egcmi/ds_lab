@@ -11,12 +11,7 @@ public class HammingCode {
 		String result = "";
 		for(int i = 0; i<message.length(); i++) {
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
-			String t1 = temp.substring(0,4);
-			String t2 = temp.substring(4, 8);
-			
-			String h1 = parity(t1);
-			String h2 = parity(t2);
-			result += h1+h2;
+			result += encodeBits(temp.substring(0,4)) + encodeBits(temp.substring(4,8));
 			}
 		
 		try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
@@ -29,7 +24,7 @@ public class HammingCode {
 	
 	public static String decode(String filename) {
 		
-		//Buffered Reader per leggere cosa c'è nel file
+		//Buffered Reader per leggere cosa c'ï¿½ nel file
 		
 		BufferedReader br = null;
 		//Stringa che contiene il contenuto del file
@@ -64,7 +59,7 @@ public class HammingCode {
 			
 			String tmpStr = "";
 			
-			//finchè j non è multiplo di 6 aggiungo i caratteri che trovo
+			//finchï¿½ j non ï¿½ multiplo di 6 aggiungo i caratteri che trovo
 			//ad una stringa temporanea.
 			//faccio il check degli errori
 			//decodifico
@@ -82,7 +77,7 @@ public class HammingCode {
 		return content;
 	}
 	
-	private static String parity(String data) {
+	private static String encodeBits(String data) {
 		
 		int p1, p2, p3;
 		int d1, d2, d3, d4;
