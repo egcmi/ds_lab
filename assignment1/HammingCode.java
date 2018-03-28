@@ -7,6 +7,24 @@ import java.nio.file.Paths;
 
 public class HammingCode {
 	
+	//generating matrix
+	private static final boolean[][] G = {
+			{true,	true,	false,	true},		// [ 1, 1, 0, 1 ]
+			{true,	false,	true,	true},		// [ 1, 0, 1, 1 ]
+			{true,	false,	false,	false},		// [ 1, 0, 0, 0 ]
+			{false,	true,	true,	true},		// [ 0, 1, 1, 1 ]
+			{false,	true,	false,	false},		// [ 0, 1, 0, 0 ]
+			{false,	false,	true,	false},		// [ 0, 0, 1, 0 ]
+			{false,	false,	false,	true}		// [ 0, 0, 0, 1 ]
+		};
+	
+	//parity-check matrix
+	private static final boolean[][] H = {
+			{true,	false,	true,	false,	true,	false,	true},		// [ 1, 0, 1, 0, 1, 0, 1 ]
+			{false,	true,	true,	false,	false,	true,	true},		// [ 0, 1, 1, 0, 0, 1, 1 ]
+			{false,	false,	false,	true,	true,	true,	true}		// [ 0, 0, 0, 1, 1, 1, 1 ]
+		};
+	
 	public static void encode(String message, String filename) {
 		String result = "";
 		for(int i = 0; i<message.length(); i++) {
@@ -38,7 +56,7 @@ public class HammingCode {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			System.out.println("Input length " + content.length() + " not valid: must be multiple of 7");
+			System.err.println("Input length " + content.length() + " not valid: must be multiple of 7");
 			e.printStackTrace();
 		}
 
