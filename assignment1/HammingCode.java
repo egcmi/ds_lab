@@ -10,7 +10,7 @@ public class HammingCode {
 	public static void encode(String message, String filename) {
 		String result = "";
 		for(int i = 0; i<message.length(); i++) {
-			//legge il carattere in posizione i, lo converte in una stringa binaria lunga 8 caratteri, aggiunge zeri all'inizio della stringa se più corta
+			//read ith character, convert it to 8-character-long binary string, add leading 0s if shorter
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
 			result += encodeBits(temp.substring(0,4)) + encodeBits(temp.substring(4,8));
 			}
@@ -27,13 +27,18 @@ public class HammingCode {
         String content = "";
         String result = "";
 		try {
-			//più compatto per leggere tutto il file in una volta sola e farlo diventare una stringa, senza dover iterare riga per riga
+			//read input file in one step and store the content into a string, without having to iterate line by line
+			//a valid input file will contain only one line of code anyway
 			content = new String(Files.readAllBytes(Paths.get(filename)));
 			if (content.length() % 7 != 0) {
-				// TODO throw exception/error: se la lunghezza della stringa non è multipla di 7
+				//throw exception: se la lunghezza della stringa non è multipla di 7
+				throw new Exception();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("Input length " + content.length() + " not valid: must be multiple of 7");
 			e.printStackTrace();
 		}
 
@@ -58,7 +63,7 @@ public class HammingCode {
 //			}
 //		}
 		
-		//problema con il codice sopra (che ho commentato):
+		//problema con il codice sopra (commentato):
 		//modulo 6 -> vuol dire che legge 6 caratteri (non 7) e salta il primo perché 0%6=0 quindi non entra nell'if
 		//propongo di fare così:
 		//finché la stringa content non è vuota:
@@ -68,7 +73,8 @@ public class HammingCode {
 		String temp = "";
 		while (content.length() != 0) {
 			temp = content.substring(0,7);
-			// TODO do stuff with temp
+			// TODO do stuff with temp: check for errors and decode
+			
 			content = content.substring(7);
 		}
 		
