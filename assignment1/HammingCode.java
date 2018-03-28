@@ -25,6 +25,11 @@ public class HammingCode {
 			{false,	false,	false,	true,	true,	true,	true}		// [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
 	
+	private static boolean[] multiplyVector() {
+		boolean[] v = {true, false};
+		return v;
+	}
+	
 	public static void encode(String message, String filename) {
 		String result = "";
 		for(int i = 0; i<message.length(); i++) {
