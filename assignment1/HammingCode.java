@@ -25,7 +25,7 @@ public class HammingCode {
 			{false,	false,	false,	true,	true,	true,	true}		// [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
 	
-	private static boolean[] multiplyVector(boolean[] v1, boolean[] v2) {
+	private static boolean[] multiplyVector(boolean[] v1, boolean[] v2) { 
 		boolean[] v = {true, false};	//dummy vector
 		// TODO implement
 		return v;
