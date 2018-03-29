@@ -25,8 +25,24 @@ public class HammingCode {
 			{false,	false,	false,	true,	true,	true,	true}		// [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
 	
-	private static boolean[] multiplyVector() {
-		boolean[] v = {true, false};
+	private static boolean[] multiplyVector(boolean[] v1, boolean[] v2) {
+		boolean[] v = {true, false};	//dummy vector
+		// TODO implement
+		return v;
+	}
+	
+	private static boolean[][] multiplyMatrix(boolean [][] m, boolean[] v){
+		// TODO implement
+		return m;
+	}
+	
+	private static void writeToFile(boolean[] v, String filename) {
+		// TODO transform boolean vector into string of 0s and 1s and print it into the file
+	}
+	
+	private static boolean[] readFromFile(String filename) {
+		// TODO read the given file and transform it into a boolean vector
+		boolean[] v = {true, false};	//dummy vector
 		return v;
 	}
 	
@@ -93,11 +109,11 @@ public class HammingCode {
 		//	temp = leggi i primi 7 caratteri di content,
 		//	fai cose (decodifica, correzione degli errori, concateni il risultato a result)
 		//	modifichi content: content MENO i primi 7 caratteri
+		
 		String temp = "";
 		while (content.length() != 0) {
 			temp = content.substring(0,7);
 			// TODO do stuff with temp: check for errors and decode
-			
 			content = content.substring(7);
 		}
 		
@@ -105,7 +121,6 @@ public class HammingCode {
 	}
 	
 	private static String encodeBits(String data) {
-		
 		int p1, p2, p3;
 		int d1, d2, d3, d4;
 		
