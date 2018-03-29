@@ -100,13 +100,64 @@ public class HammingCode {
 		}
 		
 		String temp = "";
+		
 		//finché la stringa content non è vuota:
 		//	temp = leggi i primi 7 caratteri di content,
 		//	fai cose (decodifica, correzione degli errori, concateni il risultato a result)
 		//	modifichi content: content MENO i primi 7 caratteri
 		while (content.length() != 0) {
+			Boolean tempArray = new Boolean[6];
 			temp = content.substring(0,7);
 			// TODO do stuff with temp: check for errors and decode
+
+			//trasformo temp in array di boolean
+			for(int i = 0; i<temp.length; i++){
+				if(temp.charAt(i) == '0'){
+					tempArray[i] = false;
+				}
+				if(temp.charAt(i) == '1'){
+					tempArray[i] = true;
+				}
+			}
+
+			//parity check
+			Boolean checkedVector = multiplyMatrix(H,tempArray);
+			
+			//all 0?
+			Boolean all0 = true;
+			for(int j = 0; j<checkedVector.length; j++){
+				if(checkedVector.charAt(j) == 1){
+					all0 = false
+				}
+			}
+
+			//error correction
+			if(all0 == false){
+				Boolean correctVector = errorCorrection(checkedVector);
+				String correctStr = "";
+					for(int k = 0; k<correctVector.length; k++){
+						if(correctVector.charAt(k) == true){
+							correctStr += 1;
+						}
+						if(correctVector.charAt(k) == false){
+							correctStr += 0;
+						}
+					}
+			}else{
+			//tranform vector into string
+				String correctStr = "";
+				for(int k = 0; k<checkedVector.length; k++){
+					if(checkedVector.charAt(k) == true){
+						correctStr += 1;
+					}
+					if(checkedVector.charAt(k) == false){
+						correctStr += 0;
+					}
+				}
+			}
+			
+			//concatenate correctStr to result string
+			result += correctStr;
 			content = content.substring(7);
 		}
 		
@@ -129,11 +180,26 @@ public class HammingCode {
 		return ""+p1+p2+d1+p3+d2+d3+d4;
 	}
 	
-	private static String errorCorrector(String vector) {
+	private static String errorCorrector(Boolean vector) {
 		
+		Boolean toBeCorrected = multiplyMatrix(H,tempArray);
+
+		//transform boolean values in 0s and 1s (binary string) 
+		//and calculate the equivalent integer
+		String temp = "";
+		for(int g = 0; g<toBeCorrected.length; g++){
+			temp = toBeCorrected.charAt(g) + temp;
+		}
 		
-		
-		return vector;
+		int numOfColumn = Integer.parseInt(temp,2);
+
+		for(int h = 0; h<toBeCorrected.length; h++){
+			if(h == numOfColumn){
+				toBeCorrected[h] = !toBeCorrected[h]; 
+			}
+		}
+
+		return toBeCorrected;
 	}
 }
 
