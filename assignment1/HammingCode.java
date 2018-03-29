@@ -33,6 +33,7 @@ public class HammingCode {
 	
 	private static boolean[][] multiplyMatrix(boolean [][] m, boolean[] v){
 		// TODO implement
+		// implement XOR as (x != y)
 		return m;
 	}
 	
