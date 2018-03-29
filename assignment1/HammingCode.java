@@ -25,16 +25,33 @@ public class HammingCode {
 			{false,	false,	false,	true,	true,	true,	true}		// [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
 	
-	private static boolean[] multiplyVector(boolean[] v1, boolean[] v2) { 
-		boolean[] v = {true, false};	//dummy vector
-		// TODO implement
-		return v;
+	//dot product
+	private static boolean multiplyVector(boolean[] v1, boolean[] v2) { 
+//		if (v1.length != v2.length)
+//			throw new Exception();
+		boolean[] temp = new boolean[v1.length];
+		boolean res = false;
+		int i;
+		for (i=0; i<v1.length; i++) {
+			temp[i] = (v1 != v2);
+		}
+		
+		for(i=0; i < v1.length; i++) {
+			res = res != temp[i];
+		}
+		return res;
 	}
 	
-	private static boolean[][] multiplyMatrix(boolean [][] m, boolean[] v){
-		// TODO implement
-		// implement XOR as (x != y)
-		return m;
+	//parity check
+	private static boolean[] multiplyMatrix(boolean[][] m, boolean[] v){
+		boolean[] res = new boolean[m.length];
+		
+		//from 0 to 2
+		for (int i=0; i<v.length; i++) {
+			res[i] = multiplyVector(m[i], v);
+		}
+
+		return res;
 	}
 	
 	private static void writeToFile(boolean[] v, String filename) {
