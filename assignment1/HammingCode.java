@@ -106,12 +106,12 @@ public class HammingCode {
 		//	fai cose (decodifica, correzione degli errori, concateni il risultato a result)
 		//	modifichi content: content MENO i primi 7 caratteri
 		while (content.length() != 0) {
-			Boolean tempArray = new Boolean[6];
+			boolean[] tempArray = new boolean[6];
 			temp = content.substring(0,7);
 			// TODO do stuff with temp: check for errors and decode
 
 			//trasformo temp in array di boolean
-			for(int i = 0; i<temp.length; i++){
+			for(int i = 0; i<temp.length(); i++){
 				if(temp.charAt(i) == '0'){
 					tempArray[i] = false;
 				}
@@ -121,43 +121,43 @@ public class HammingCode {
 			}
 
 			//parity check
-			Boolean checkedVector = multiplyMatrix(H,tempArray);
+			boolean[] checkedVector = multiplyMatrix(H,tempArray);
 			
 			//all 0?
-			Boolean all0 = true;
+			boolean all0 = true;
 			for(int j = 0; j<checkedVector.length; j++){
-				if(checkedVector.charAt(j) == 1){
-					all0 = false
+				if(checkedVector[j]){
+					all0 = false;
 				}
 			}
+			
+			String correctStr = "";
 
 			//error correction
 			if(all0 == false){
-				Boolean correctVector = errorCorrection(checkedVector);
-				String correctStr = "";
+				boolean[] correctVector = errorCorrector(checkedVector);
 					for(int k = 0; k<correctVector.length; k++){
-						if(correctVector.charAt(k) == true){
+						if(correctVector[k] == true){
 							correctStr += 1;
 						}
-						if(correctVector.charAt(k) == false){
+						if(correctVector[k] == false){
 							correctStr += 0;
 						}
 					}
 			}else{
 			//tranform vector into string
-				String correctStr = "";
 				for(int k = 0; k<checkedVector.length; k++){
-					if(checkedVector.charAt(k) == true){
+					if(checkedVector[k] == true){
 						correctStr += 1;
 					}
-					if(checkedVector.charAt(k) == false){
+					if(checkedVector[k] == false){
 						correctStr += 0;
 					}
 				}
 			}
-			
 			//concatenate correctStr to result string
 			result += correctStr;
+
 			content = content.substring(7);
 		}
 		
@@ -180,7 +180,7 @@ public class HammingCode {
 		return ""+p1+p2+d1+p3+d2+d3+d4;
 	}
 	
-	private static String errorCorrector(Boolean vector) {
+	private static boolean[] errorCorrector(boolean[] vector) {
 		
 		Boolean toBeCorrected = multiplyMatrix(H,tempArray);
 
