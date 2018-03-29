@@ -135,7 +135,7 @@ public class HammingCode {
 
 			//error correction
 			if(all0 == false){
-				boolean[] correctVector = errorCorrector(checkedVector);
+				boolean[] correctVector = errorCorrector(tempArray);
 					for(int k = 0; k<correctVector.length; k++){
 						if(correctVector[k] == true){
 							correctStr += 1;
@@ -144,20 +144,11 @@ public class HammingCode {
 							correctStr += 0;
 						}
 					}
+					result += correctStr;
 			}else{
-			//tranform vector into string
-				for(int k = 0; k<checkedVector.length; k++){
-					if(checkedVector[k] == true){
-						correctStr += 1;
-					}
-					if(checkedVector[k] == false){
-						correctStr += 0;
-					}
-				}
+				result += temp;
 			}
 			//concatenate correctStr to result string
-			result += correctStr;
-
 			content = content.substring(7);
 		}
 		
@@ -182,7 +173,7 @@ public class HammingCode {
 	
 	private static boolean[] errorCorrector(boolean[] vector) {
 		
-		Boolean toBeCorrected = multiplyMatrix(H,tempArray);
+		Boolean toBeCorrected = multiplyMatrix(H,vector);
 
 		//transform boolean values in 0s and 1s (binary string) 
 		//and calculate the equivalent integer
@@ -193,13 +184,13 @@ public class HammingCode {
 		
 		int numOfColumn = Integer.parseInt(temp,2);
 
-		for(int h = 0; h<toBeCorrected.length; h++){
+		for(int h = 0; h<vector.length; h++){
 			if(h == numOfColumn){
-				toBeCorrected[h] = !toBeCorrected[h]; 
+				vector[h] = !vector[h]; 
 			}
 		}
 
-		return toBeCorrected;
+		return vector;
 	}
 }
 
