@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 public class HammingCode {
 	
 	//generating matrix
-	private static final boolean[][] G = {
+	public static final boolean[][] G = {
 			{true,	true,	false,	true},		// [ 1, 1, 0, 1 ]
 			{true,	false,	true,	true},		// [ 1, 0, 1, 1 ]
 			{true,	false,	false,	false},		// [ 1, 0, 0, 0 ]
@@ -19,38 +19,39 @@ public class HammingCode {
 		};
 	
 	//parity-check matrix
-	private static final boolean[][] H = {
+	public static final boolean[][] H = {
 			{true,	false,	true,	false,	true,	false,	true},		// [ 1, 0, 1, 0, 1, 0, 1 ]
 			{false,	true,	true,	false,	false,	true,	true},		// [ 0, 1, 1, 0, 0, 1, 1 ]
 			{false,	false,	false,	true,	true,	true,	true}		// [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
 	
 	//dot product
-	private static boolean multiplyVector(boolean[] v1, boolean[] v2) { 
-//		if (v1.length != v2.length)
-//			throw new Exception();
+	public static boolean multiplyVector(boolean[] v1, boolean[] v2) { 
+		if (v1.length != v2.length)
+			System.out.println("Different lengths: " + v1.length + ", " + v2.length);
 		boolean[] temp = new boolean[v1.length];
 		boolean res = false;
 		int i;
 		for (i=0; i<v1.length; i++) {
-			temp[i] = (v1 != v2);
+			temp[i] = (v1[i] != v2[i]);
+			System.out.print(temp[i] + ", ");
 		}
 		
 		for(i=0; i < v1.length; i++) {
 			res = res != temp[i];
 		}
+		System.out.println(res);
 		return res;
 	}
 	
 	//parity check
-	private static boolean[] multiplyMatrix(boolean[][] m, boolean[] v){
+	public static boolean[] multiplyMatrix(boolean[][] m, boolean[] v){
 		boolean[] res = new boolean[m.length];
 		
 		//from 0 to 2
-		for (int i=0; i<v.length; i++) {
+		for (int i=0; i<m.length; i++) {
 			res[i] = multiplyVector(m[i], v);
 		}
-
 		return res;
 	}
 	
