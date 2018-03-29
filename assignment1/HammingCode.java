@@ -81,37 +81,12 @@ public class HammingCode {
 			System.err.println("Input length " + content.length() + " not valid: must be multiple of 7");
 			e.printStackTrace();
 		}
-
-//		//loop per iterare lungo la stringa e cominciare a decodificare
-//		for(int j = 0; j<content.length(); j++) {
-//			
-//			String tmpStr = "";
-//			
-//			//finch� j non � multiplo di 6 aggiungo i caratteri che trovo
-//			//ad una stringa temporanea.
-//			//faccio il check degli errori
-//			//decodifico
-//			
-//			if ((j%6 != 0) && (j != 0)) {
-//				tmpStr += content.charAt(j);
-//				//guardalo dopo
-//				String string_without_error = errorCorrector(tmpStr);
-//			} 
-//			
-//			if(j%6 == 0){
-//				tmpStr = "";
-//			}
-//		}
 		
-		//problema con il codice sopra (commentato):
-		//modulo 6 -> vuol dire che legge 6 caratteri (non 7) e salta il primo perché 0%6=0 quindi non entra nell'if
-		//propongo di fare così:
+		String temp = "";
 		//finché la stringa content non è vuota:
 		//	temp = leggi i primi 7 caratteri di content,
 		//	fai cose (decodifica, correzione degli errori, concateni il risultato a result)
 		//	modifichi content: content MENO i primi 7 caratteri
-		
-		String temp = "";
 		while (content.length() != 0) {
 			temp = content.substring(0,7);
 			// TODO do stuff with temp: check for errors and decode
