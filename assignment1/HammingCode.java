@@ -79,7 +79,7 @@ public class HammingCode {
 		return new String(res);
 	}
 
-	public static boolean isAll0(boolean[] v) {
+	public static boolean isCorrect(boolean[] v) {
 		for (int i = 0; i < v.length; i++)
 			if (v[i])
 				return false;
@@ -136,19 +136,15 @@ public class HammingCode {
 		String content = "";
 		String result = "";
 		try {
-			// read input file in one step, store the content into a string, without having
-			// to iterate line by line
+			// read input file in one step, store the content into a string, without having to iterate line by line
 			// a valid input file will contain only one line of code anyway
 			content = new String(Files.readAllBytes(Paths.get(filename)));
 			if (content.length() % 7 != 0) {
-				// throw exception: se la lunghezza della stringa non è multipla di 7
-				throw new Exception();
+				System.out.println("Input length " + content.length() + " not valid: must be multiple of 7");
+				// TODO throw exception maybe: se la lunghezza della stringa non è multipla di 7
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			System.err.println("Input length " + content.length() + " not valid: must be multiple of 7");
 			e.printStackTrace();
 		}
 
@@ -158,25 +154,17 @@ public class HammingCode {
 		// reassignment: content = content MINUS first 7 characters
 
 		while (content.length() != 0) {
-			// trasformo temp in array di boolean <- created another method for this
-
-			boolean[] temp = stringToBooleanVector(content.substring(0, 7));
-
-			// parity check
-			boolean[] checkedVector = multiplyMatrix(H, temp);
-
-			// all 0? <- created another method for this
-			boolean all0 = isAll0(checkedVector);
-
-			String correctStr = "";
-
-			// error correction
-			if (all0) {
+			boolean[] temp = stringToBooleanVector(content.substring(0, 7));	// trasformo temp in array di boolean
+			boolean[] parityCheck = multiplyMatrix(H, temp);	// parity check
+			if (isCorrect(parityCheck)) {	// all 0? <- created another method for this
 				result += booleanVectorToString(temp);
 				continue;
 			}
+			
+			// error correction
+			String correctStr = "";
 
-			boolean[] correctVector = errorCorrector(temp);
+			boolean[] correctVector = errorCorrector(temp, parityCheck);
 			
 			for (int k = 0; k < correctVector.length; k++) {
 				if (correctVector[k] == true) {
@@ -195,22 +183,41 @@ public class HammingCode {
 		return result;
 	}
 
-	private static boolean[] errorCorrector(boolean[] vector) {
-
+	public static int wrongColumn(boolean[] parity) {
+		int res;
+		for (int j=1; j<H.length; j++) {
+			for (int i=1; i<H[j].length; i++) {
+				if (H[j][i] != parity[j]) {
+					break;
+				}
+				if (i == parity.length) {
+					
+				}
+			}
+		}
+		return -1;
+	}
+	
+	public static boolean[] errorCorrector(boolean[] vector, boolean[] parity) {
+		if (isCorrect(parity)) {
+			return vector;
+		}
+		
+		
 		boolean[] toBeCorrected = multiplyMatrix(H, vector);
 
 		// transform boolean values in 0s and 1s (binary string) <- created new method for this
 		// and calculate the equivalent integer
 		String temp = "";
-		for (int g = 0; g < toBeCorrected.length; g++) {
-			temp = toBeCorrected[g] + temp;
+		for (int i = 0; i < toBeCorrected.length; i++) {
+			temp = toBeCorrected[i] + temp;
 		}
 
 		int numOfColumn = Integer.parseInt(temp, 2);
 
-		for (int h = 0; h < vector.length; h++) {
-			if (h == numOfColumn) {
-				vector[h] = !vector[h];
+		for (int i = 0; i < vector.length; i++) {
+			if (i == numOfColumn) {
+				vector[i] = !vector[i];
 			}
 		}
 
