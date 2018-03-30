@@ -149,78 +149,51 @@ public class HammingCode {
 		}
 
 		//while string content not empty:
-		// temp = read first 7 characters of content
+		// temp = read first 7 characters of content and transform it into boolean[]
 		// do stuff: decode, correct errors if needed, concatenate correct result to res
 		// reassignment: content = content MINUS first 7 characters
-
 		while (content.length() != 0) {
-			boolean[] temp = stringToBooleanVector(content.substring(0, 7));	// trasformo temp in array di boolean
-			boolean[] parityCheck = multiplyMatrix(H, temp);	// parity check
-			if (isCorrect(parityCheck)) {	// all 0? <- created another method for this
-				result += booleanVectorToString(temp);
-				continue;
-			}
-			
-			// error correction
-			String correctStr = "";
-
-			boolean[] correctVector = errorCorrector(temp, parityCheck);
-			
-			for (int k = 0; k < correctVector.length; k++) {
-				if (correctVector[k] == true) {
-					correctStr += 1;
-				}
-				if (correctVector[k] == false) {
-					correctStr += 0;
-				}
-				// concatenate correctStr to result string
-				result += correctStr;
-
-				//content = content MINUS first 7 characters
-				content = content.substring(7);
-			}
+			boolean[] temp = stringToBooleanVector(content.substring(0, 7));
+			boolean[] correct = correctError(temp);
+			result += booleanVectorToString(correct);
+			content = content.substring(7);
 		}
+		//now result is correct, proceed to actual decoding
+		
+		//TODO:
+		//	divide result in substrings of length 14
+		//	split 14string into 2 7strings
+		//	remove 1st, 2nd, 4th characters from each -> get 4 data bits from each
+		//	concatenate 4+4 data bits into 1 byte
+		//	transform byte into character
+		//	concatenate all resulting characters
+		//	return (correctly) decoded result
+		
 		return result;
 	}
 
 	public static int wrongColumn(boolean[] parity) {
-		int res;
 		for (int j=1; j<H.length; j++) {
 			for (int i=1; i<H[j].length; i++) {
-				if (H[j][i] != parity[j]) {
+				if (H[i][j] != parity[j]) {
 					break;
 				}
 				if (i == parity.length) {
-					
+					return i;
 				}
 			}
 		}
 		return -1;
 	}
 	
-	public static boolean[] errorCorrector(boolean[] vector, boolean[] parity) {
+	public static boolean[] correctError(boolean[] v) {
+		boolean[] parity = multiplyMatrix(H, v);	//parity check
 		if (isCorrect(parity)) {
-			return vector;
+			return v;
 		}
 		
-		
-		boolean[] toBeCorrected = multiplyMatrix(H, vector);
-
-		// transform boolean values in 0s and 1s (binary string) <- created new method for this
-		// and calculate the equivalent integer
-		String temp = "";
-		for (int i = 0; i < toBeCorrected.length; i++) {
-			temp = toBeCorrected[i] + temp;
-		}
-
-		int numOfColumn = Integer.parseInt(temp, 2);
-
-		for (int i = 0; i < vector.length; i++) {
-			if (i == numOfColumn) {
-				vector[i] = !vector[i];
-			}
-		}
-
-		return vector;
+		int wrong = wrongColumn(parity);
+		v[wrong] = !v[wrong];
+		return v;
 	}
 }
