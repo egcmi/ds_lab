@@ -32,12 +32,15 @@ public class HammingCode {
 		boolean[] temp = new boolean[v1.length];
 		boolean res = false;
 		int i;
+		
+		//from 0 to 7
 		for (i=0; i<v1.length; i++) {
-			temp[i] = (v1[i] != v2[i]);
-			System.out.print(temp[i] + ", ");
+			temp[i] = v1[i] && v2[i];
+			System.out.print("" + i + temp[i] + ", ");
 		}
 		
-		for(i=0; i < v1.length; i++) {
+		//from 0 to 7
+		for(i=0; i < temp.length; i++) {
 			res = res != temp[i];
 		}
 		System.out.println(res);
@@ -52,6 +55,7 @@ public class HammingCode {
 		for (int i=0; i<m.length; i++) {
 			res[i] = multiplyVector(m[i], v);
 		}
+		System.out.println(res[0]+ ", "+ res[1] + ", "+res[2]);
 		return res;
 	}
 	
@@ -174,13 +178,13 @@ public class HammingCode {
 	
 	private static boolean[] errorCorrector(boolean[] vector) {
 		
-		Boolean toBeCorrected = multiplyMatrix(H,vector);
+		boolean[] toBeCorrected = multiplyMatrix(H, vector);
 
 		//transform boolean values in 0s and 1s (binary string) 
 		//and calculate the equivalent integer
 		String temp = "";
 		for(int g = 0; g<toBeCorrected.length; g++){
-			temp = toBeCorrected.charAt(g) + temp;
+			temp = toBeCorrected[g] + temp;
 		}
 		
 		int numOfColumn = Integer.parseInt(temp,2);
