@@ -171,7 +171,18 @@ public class HammingCode {
 		
 		return result;
 	}
+	
+	//s1, s2 both 4-character long
+	public static char[] decodeBits(String s1, String s2) {
+		return Character.toChars(Integer.parseInt(s1+s2, 2));
+	}
 
+	public static String stringToData(String s) {
+		boolean[] temp = stringToBooleanVector(s);
+		temp = multiplyMatrix(G, temp);
+		return booleanVectorToString(temp);
+	}
+	
 	public static int wrongColumn(boolean[] parity) {
 		for (int j=1; j<H.length; j++) {
 			for (int i=1; i<H[j].length; i++) {
