@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 public class HammingCode {
 	
 	// code-generating matrix
-	public static final boolean[][] G = {		//data  d1 d2 d3 d4
+	private static final boolean[][] G = {		//data  d1 d2 d3 d4
 			{true,	true,	false,	true},		// p1 [ 1, 1, 0, 1 ]
 			{true,	false,	true,	true},		// p2 [ 1, 0, 1, 1 ]
 			{true,	false,	false,	false},		// d1 [ 1, 0, 0, 0 ]
@@ -19,11 +19,19 @@ public class HammingCode {
 		};
 	
 	// parity-check matrix
-	public static final boolean[][] H = {								//index 1  2  3  4  5  6  7
+	private static final boolean[][] H = {								//index 1  2  3  4  5  6  7
 			{true,	false,	true,	false,	true,	false,	true},		// p1 [ 1, 0, 1, 0, 1, 0, 1 ]
 			{false,	true,	true,	false,	false,	true,	true},		// p2 [ 0, 1, 1, 0, 0, 1, 1 ]
 			{false,	false,	false,	true,	true,	true,	true}		// p3 [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
+	
+	// identity matrix for data bits
+	private static final boolean[][] R =  {													//   p1 p2 d1 p3 d2 d3 d4
+			{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
+			{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
+			{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
+			{false,	false,	false,	false,	false,	false,	true}		// [ 0, 0, 0, 0, 0, 0, 1 ]
+	};
 	
 	public static void encode(String message, String filename) {
 		String res = "";
@@ -59,7 +67,7 @@ public class HammingCode {
 			return "";
 		}
 
-		return new String(binaryToChar(decodeBytes(correct(stringToBooleanArray(content)))));
+		return new String(binaryToCharArray(decodeBytes(correct(stringToBooleanArray(content)))));
 	}
 
 	private static boolean product(boolean[] a1, boolean[] a2) {
@@ -68,9 +76,8 @@ public class HammingCode {
 		}
 
 		boolean res = false;
-		for (int i = 0; i < a1.length; i++) {
+		for (int i = 0; i < a1.length; i++)
 			res = res != (a1[i] && a2[i]);
-		}
 		return res;
 	}
 
@@ -93,7 +100,7 @@ public class HammingCode {
 				res[i] = true;
 				break;
 			default:
-				System.err.println("Invalid character: must be 0 or 1");
+				System.err.println("Invalid character at position " + i + ": expected 0 or 1 but found \'" + s.charAt(i) + "\'");
 				System.exit(1);
 			}
 		}
@@ -127,16 +134,13 @@ public class HammingCode {
 		if (isCorrect(parity)) {
 			return a;
 		}
-
-		for (int i = 0; i < parity.length; i++) {
-			System.out.print(parity[i] + ", ");
-		} System.out.println();
 		
-		int wrong = wrongColumn(parity);
+		int wrong = wrongBit(parity);
+		System.out.println(wrong);
 		a[wrong] = !a[wrong];
 		return a;
 	}
-
+	
 	private static boolean[] correct(boolean[] a) {
 		int l = 7;
 		for (int i = 0; i < a.length; i += l) {
@@ -149,13 +153,6 @@ public class HammingCode {
 	}
 	
 	private static boolean[] decodeBytes(boolean[] parity) {
-		// identity matrix for data bits
-		boolean[][] R =  {													//   p1 p2 d1 p3 d2 d3 d4
-				{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
-				{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
-				{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
-				{false,	false,	false,	false,	false,	false,	true}		// [ 0, 0, 0, 0, 0, 0, 1 ]
-		};
 		
 		int l = 7;
 		boolean[] res = new boolean[parity.length / l * 4];
@@ -168,7 +165,7 @@ public class HammingCode {
 		return res;
 	}
 
-	private static char[] binaryToChar(boolean[] a) {
+	private static char[] binaryToCharArray(boolean[] a) {
 		int l = 8;
 		String binary = booleanArrayToString(a);
 		char[] res = new char[binary.length() / l];
@@ -180,11 +177,11 @@ public class HammingCode {
 		return res;
 	}
 
-	public static int wrongColumn(boolean[] col) {
-		for (int j = 0; j < H.length; j++) {
+	private static int wrongBit(boolean[] col) {
+		for (int j = 0; j < H[0].length; j++) {
 			int count = 0;
 			for (int i = 0; i < col.length; i++) {
-				if (H[j][i] == col[j])
+				if (H[i][j] == col[i])
 					count++;
 				if (count == col.length)
 					return j;
