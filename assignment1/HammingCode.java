@@ -135,6 +135,9 @@ public class HammingCode {
 	public static String decode(String filename) {
 		String content = "";
 		String result = "";
+		//ho aggiunto questa stringa
+		String current = "";
+		String resultChar = "";
 		try {
 			// read input file in one step, store the content into a string, without having to iterate line by line
 			// a valid input file will contain only one line of code anyway
@@ -162,14 +165,25 @@ public class HammingCode {
 		
 		//TODO:
 		//	divide result in substrings of length 14
-		//	split 14string into 2 7strings
+		while(reult.length() != 0){
+			current = result.substring(0,13);
+		//	split 14string into 2 7strings	
+			String curr1 = current.substring(0,6);
+			String curr2 = current.substring(7,13);
 		//	remove 1st, 2nd, 4th characters from each -> get 4 data bits from each
+			String data1 = stringToData(curr1);
+			String data2 = stringToData(curr2);
 		//	concatenate 4+4 data bits into 1 byte
+			String currentData = data1 + data2;
 		//	transform byte into character
+			int dataInt = Integer.parseInt(currentData,2);
+			char dataChar = Character.toChars(dataInt);
 		//	concatenate all resulting characters
+			resultChar += dataChar;
+			current = current.substring(14);	
+		}
 		//	return (correctly) decoded result
-		
-		return result;
+		return resultChar;
 	}
 	
 	//s1, s2 both 4-character long
