@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+
+import sun.security.util.Length;
 
 public class HammingCode {
 	
-	//generating matrix
+	// generating matrix
 	public static final boolean[][] G = {		//data  d1 d2 d3 d4
 			{true,	true,	false,	true},		// p1 [ 1, 1, 0, 1 ]
 			{true,	false,	true,	true},		// p2 [ 1, 0, 1, 1 ]
@@ -18,12 +21,20 @@ public class HammingCode {
 			{false,	false,	false,	true}		// d4 [ 0, 0, 0, 1 ]
 		};
 	
-	//parity-check matrix
+	// parity-check matrix
 	public static final boolean[][] H = {								//index 1  2  3  4  5  6  7
 			{true,	false,	true,	false,	true,	false,	true},		// p1 [ 1, 0, 1, 0, 1, 0, 1 ]
 			{false,	true,	true,	false,	false,	true,	true},		// p2 [ 0, 1, 1, 0, 0, 1, 1 ]
 			{false,	false,	false,	true,	true,	true,	true}		// p3 [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
+	
+	// identity with data bits for decoding
+	public static final boolean[][] R =  {
+			{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
+			{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
+			{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
+			{false,	false,	false,	false,	false,	false,	true}		// [ 0, 0, 0, 0, 0, 0, 1 ]
+	};
 	
 	// dot product
 	public static boolean multiplyVector(boolean[] v1, boolean[] v2) {
@@ -51,7 +62,7 @@ public class HammingCode {
 		return res;
 	}
 
-	public static boolean[] stringToBooleanVector(String s) {
+	public static boolean[] stringToBooleanArray(String s) {
 		boolean[] res = new boolean[s.length()];
 
 		for (int i = 0; i < s.length(); i++) {
@@ -71,7 +82,7 @@ public class HammingCode {
 		return res;
 	}
 
-	public static String booleanVectorToString(boolean[] v) {
+	public static String booleanArrayToString(boolean[] v) {
 		char[] res = new char[v.length];
 		for (int i = 0; i < v.length; i++) {
 			res[i] = v[i] ? '1' : '0';
@@ -131,73 +142,73 @@ public class HammingCode {
 			e.printStackTrace();
 		}
 	}
+	
+	public static boolean[] correctError(boolean[] v) {
+		boolean[] parity = multiplyMatrix(H, v);	//parity check
+		if (isCorrect(parity)) {
+			return v;
+		}
+		
+		int wrong = findWrongColumn(parity);
+		v[wrong] = !v[wrong];
+		return v;
+	}
 
+	public static boolean[]	correct(boolean[] v) {
+		int l = 7;
+		for (int i=0; i<v.length; i+=l) {
+			boolean[] temp = new boolean[l];
+			System.arraycopy(v, i, temp, 0, l);
+			temp = correctError(temp);
+			System.arraycopy(temp, 0, v, i, l);
+		}
+		return v;
+	}
+	
 	public static String decode(String filename) {
+		// read the whole input file, store the content into this string
 		String content = "";
-		String result = "";
-		//ho aggiunto questa stringa
-		String current = "";
-		String resultChar = "";
 		try {
-			// read input file in one step, store the content into a string, without having to iterate line by line
-			// a valid input file will contain only one line of code anyway
 			content = new String(Files.readAllBytes(Paths.get(filename)));
-			if (content.length() % 7 != 0) {
-				System.out.println("Input length " + content.length() + " not valid: must be multiple of 7");
-				// TODO throw exception maybe: se la lunghezza della stringa non è multipla di 7
+			if (content.length() % 14 != 0) {
+				System.out.println("Input length " + content.length() + " not valid: must be multiple of 14.");
+				return "";
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("File" + filename + " not found.");
 			e.printStackTrace();
+			return "";
 		}
-
-		//while string content not empty:
-		// temp = read first 7 characters of content and transform it into boolean[]
-		// do stuff: decode, correct errors if needed, concatenate correct result to res
-		// reassignment: content = content MINUS first 7 characters
-		while (content.length() != 0) {
-			boolean[] temp = stringToBooleanVector(content.substring(0, 7));
-			boolean[] correct = correctError(temp);
-			result += booleanVectorToString(correct);
-			content = content.substring(7);
-		}
-		//now result is correct, proceed to actual decoding
 		
-		//TODO:
-		//	divide result in substrings of length 14
-		while(reult.length() != 0){
-			current = result.substring(0,13);
-		//	split 14string into 2 7strings	
-			String curr1 = current.substring(0,6);
-			String curr2 = current.substring(7,13);
-		//	remove 1st, 2nd, 4th characters from each -> get 4 data bits from each
-			String data1 = stringToData(curr1);
-			String data2 = stringToData(curr2);
-		//	concatenate 4+4 data bits into 1 byte
-			String currentData = data1 + data2;
-		//	transform byte into character
-			int dataInt = Integer.parseInt(currentData,2);
-			char dataChar = Character.toChars(dataInt);
-		//	concatenate all resulting characters
-			resultChar += dataChar;
-			current = current.substring(14);	
+		boolean[] binary = correct(stringToBooleanArray(content)); // now correct -> proceed to actual decoding
+		boolean[] decoded = new boolean[content.length() / 7 * 4];
+		
+		int l = 7;
+		for (int i=0; i<binary.length/l; i++) {
+			boolean[] temp = new boolean[l];
+			System.arraycopy(binary, i*l, temp, 0, l);
+			temp = multiplyMatrix(R, temp);
+			System.arraycopy(temp, 0, decoded, i*4, 4);
 		}
-		//	return (correctly) decoded result
-		return resultChar;
+		
+		char[] result = new char[decoded.length / 8];
+		content = booleanArrayToString(decoded);
+		
+		l = 8;
+		for (int i=0; i<content.length(); i+=l) {
+			String temp = content.substring(i, i+l);
+			System.arraycopy(decodeBits(temp), 0, result, i/l, 1);
+		}
+		
+		return new String(result);
 	}
 	
 	//s1, s2 both 4-character long
-	public static char[] decodeBits(String s1, String s2) {
-		return Character.toChars(Integer.parseInt(s1+s2, 2));
+	public static char[] decodeBits(String s) {
+		return Character.toChars(Integer.parseInt(s, 2));
 	}
 
-	public static String stringToData(String s) {
-		boolean[] temp = stringToBooleanVector(s);
-		temp = multiplyMatrix(G, temp);
-		return booleanVectorToString(temp);
-	}
-	
-	public static int wrongColumn(boolean[] parity) {
+	public static int findWrongColumn(boolean[] parity) {
 		for (int j=1; j<H.length; j++) {
 			for (int i=1; i<H[j].length; i++) {
 				if (H[i][j] != parity[j]) {
@@ -211,14 +222,5 @@ public class HammingCode {
 		return -1;
 	}
 	
-	public static boolean[] correctError(boolean[] v) {
-		boolean[] parity = multiplyMatrix(H, v);	//parity check
-		if (isCorrect(parity)) {
-			return v;
-		}
-		
-		int wrong = wrongColumn(parity);
-		v[wrong] = !v[wrong];
-		return v;
-	}
+
 }
