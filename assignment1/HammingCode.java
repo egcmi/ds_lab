@@ -41,7 +41,6 @@ public class HammingCode {
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
 			res += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
 		}
-		System.out.println(res);
 
 		try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
 			out.print(res);
@@ -136,7 +135,6 @@ public class HammingCode {
 		}
 		
 		int wrong = wrongBit(parity);
-		System.out.println(wrong);
 		a[wrong] = !a[wrong];
 		return a;
 	}
