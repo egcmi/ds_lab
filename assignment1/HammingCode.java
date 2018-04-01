@@ -26,7 +26,7 @@ public class HammingCode {
 		};
 	
 	// identity matrix for data bits
-	private static final boolean[][] R =  {													//   p1 p2 d1 p3 d2 d3 d4
+	private static final boolean[][] R =  {								//   p1 p2 d1 p3 d2 d3 d4
 			{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
 			{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
 			{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
@@ -36,8 +36,7 @@ public class HammingCode {
 	public static void encode(String message, String filename) {
 		String res = "";
 		for (int i = 0; i < message.length(); i++) {
-			// read ith character, convert it to 8-character-long binary string, add leading
-			// 0s if shorter
+			// read ith character, convert it to 8-character-long binary string, add leading 0s if shorter
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
 			res += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
 		}
