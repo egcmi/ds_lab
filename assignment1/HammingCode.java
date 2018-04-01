@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-
-import sun.security.util.Length;
 
 public class HammingCode {
 	
@@ -28,37 +25,58 @@ public class HammingCode {
 			{false,	false,	false,	true,	true,	true,	true}		// p3 [ 0, 0, 0, 1, 1, 1, 1 ]
 		};
 	
-	// identity with data bits for decoding
-	public static final boolean[][] R =  {
-			{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
-			{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
-			{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
-			{false,	false,	false,	false,	false,	false,	true}		// [ 0, 0, 0, 0, 0, 0, 1 ]
-	};
+	public static void encode(String message, String filename) {
+		String res = "";
+		for (int i = 0; i < message.length(); i++) {
+			// read ith character, convert it to 8-character-long binary string, add leading 0s if shorter
+			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
+			res += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
+		}
+		System.out.println(res);
+
+		try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
+			out.print(res);
+			out.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("File " + filename + " not found.");
+			e.printStackTrace();
+		}
+	}
 	
-	// dot product
-	public static boolean multiplyVector(boolean[] v1, boolean[] v2) {
-		//handle exceptions
-		if (v1.length != v2.length) { // TODO throw new Exception(); maybe throw exception if different lengths
-			System.out.println("Different lengths: " + v1.length + ", " + v2.length);
+	public static String decode(String filename) {
+		// read the whole input file, store the content into this string
+		String content = "";
+		try {
+			content = new String(Files.readAllBytes(Paths.get(filename)));
+			if (content.length() % 14 != 0) {
+				System.err.println("Input length " + content.length() + " not valid: must be multiple of 14.");
+				return "";
+			}
+		} catch (IOException e) {
+			System.err.println("File " + filename + " not found.");
+			e.printStackTrace();
+			return "";
+		}
+		
+		return new String(binaryToChar(decodeBytes(correct(stringToBooleanArray(content)))));
+		}
+	
+	public static boolean product(boolean[] a1, boolean[] a2) {
+		if (a1.length != a2.length) {
+			System.err.println("Cannot multiply arrays of different lengths: " + a1.length + ", " + a2.length);
 		}
 		
 		boolean res = false;
-		for (int i = 0; i < v1.length; i++) {
-			res = res != (v1[i] && v2[i]);
+		for (int i = 0; i < a1.length; i++) {
+			res = res != (a1[i] && a2[i]);
 		}
 		return res;
 	}
 
-	// parity check
-	public static boolean[] multiplyMatrix(boolean[][] m, boolean[] v) {
-		boolean[] res = new boolean[m.length];
-
-		for (int i = 0; i < m.length; i++) {
-			res[i] = multiplyVector(m[i], v);
-			if (res[i])
-				System.out.println(i);
-		}
+	public static boolean[] product(boolean[][] M, boolean[] a) {
+		boolean[] res = new boolean[M.length];
+		for (int i = 0; i < M.length; i++)
+			res[i] = product(M[i], a);
 		return res;
 	}
 
@@ -74,141 +92,90 @@ public class HammingCode {
 				res[i] = true;
 				break;
 			default:
-				// TODO throw new Exception(); throw exception if not 0 or 1 + print error message
-				break; 
+				System.err.println("Invalid character: must be 0 or 1");
+				System.exit(1);
 			}
 		}
 
 		return res;
 	}
 
-	public static String booleanArrayToString(boolean[] v) {
-		char[] res = new char[v.length];
-		for (int i = 0; i < v.length; i++) {
-			res[i] = v[i] ? '1' : '0';
+	public static String booleanArrayToString(boolean[] a) {
+		char[] res = new char[a.length];
+		for (int i = 0; i < a.length; i++) {
+			res[i] = a[i] ? '1' : '0';
 		}
 		return new String(res);
 	}
 
-	public static boolean isCorrect(boolean[] v) {
-		for (int i = 0; i < v.length; i++)
-			if (v[i])
+	public static boolean isCorrect(boolean[] a) {
+		for (int i = 0; i < a.length; i++)
+			if (a[i])
 				return false;
 		return true;
 	}
 
-	public static void writeToFile(boolean[] v, String filename) {
-		// TODO transform boolean vector into string of 0s and 1s and print it into the
-		// file
+	public static String encodeBits(String data) {
+		boolean[] temp = stringToBooleanArray(data);
+		temp = product(G, temp);
+		return booleanArrayToString(temp);
 	}
 
-	public static boolean[] readFromFile(String filename) {
-		// TODO read the given file and transform it into a boolean vector
-		boolean[] v = { true, false }; // dummy vector
-		return v;
-	}
-
-	private static String encodeBits(String data) {
-		// TODO maybe use vector-matrix multiplication for more efficiency
-
-		int d1 = Integer.parseInt(data.charAt(0) + "");
-		int d2 = Integer.parseInt(data.charAt(1) + "");
-		int d3 = Integer.parseInt(data.charAt(2) + "");
-		int d4 = Integer.parseInt(data.charAt(3) + "");
-
-		int p1 = (d1 + d2 + d4) % 2;
-		int p2 = (d1 + d3 + d4) % 2;
-		int p3 = (d2 + d3 + d4) % 2;
-
-		return "" + p1 + p2 + d1 + p3 + d2 + d3 + d4;
-	}
-
-	public static void encode(String message, String filename) {
-		// TODO maybe use char[] for more efficiency
-
-		String result = "";
-		for (int i = 0; i < message.length(); i++) {
-			// read ith character, convert it to 8-character-long binary string, add leading
-			// 0s if shorter
-			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
-			result += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
-		}
-		System.out.println(result);
-
-		try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
-			out.print(result);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public static boolean[] correctError(boolean[] v) {
-		boolean[] parity = multiplyMatrix(H, v);	//parity check
+	public static boolean[] correctError(boolean[] a) {
+		boolean[] parity = product(H, a);	//parity check
 		if (isCorrect(parity)) {
-			return v;
+			return a;
 		}
 		
-		int wrong = findWrongColumn(parity);
-		v[wrong] = !v[wrong];
-		return v;
+		int wrong = wrongColumn(parity);
+		a[wrong] = !a[wrong];
+		return a;
 	}
 
-	public static boolean[]	correct(boolean[] v) {
+	public static boolean[]	correct(boolean[] a) {
 		int l = 7;
-		for (int i=0; i<v.length; i+=l) {
+		for (int i=0; i<a.length; i+=l) {
 			boolean[] temp = new boolean[l];
-			System.arraycopy(v, i, temp, 0, l);
+			System.arraycopy(a, i, temp, 0, l);
 			temp = correctError(temp);
-			System.arraycopy(temp, 0, v, i, l);
+			System.arraycopy(temp, 0, a, i, l);
 		}
-		return v;
+		return a;
 	}
 	
-	public static String decode(String filename) {
-		// read the whole input file, store the content into this string
-		String content = "";
-		try {
-			content = new String(Files.readAllBytes(Paths.get(filename)));
-			if (content.length() % 14 != 0) {
-				System.out.println("Input length " + content.length() + " not valid: must be multiple of 14.");
-				return "";
-			}
-		} catch (IOException e) {
-			System.out.println("File" + filename + " not found.");
-			e.printStackTrace();
-			return "";
-		}
-		
-		boolean[] binary = correct(stringToBooleanArray(content)); // now correct -> proceed to actual decoding
-		boolean[] decoded = new boolean[content.length() / 7 * 4];
+	public static boolean[] decodeBytes(boolean[] parity) {
+		// identity matrix for data bits
+		boolean[][] R =  {
+				{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
+				{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
+				{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
+				{false,	false,	false,	false,	false,	false,	true}		// [ 0, 0, 0, 0, 0, 0, 1 ]
+		};
 		
 		int l = 7;
-		for (int i=0; i<binary.length/l; i++) {
+		boolean[] res = new boolean[parity.length / l * 4];
+		for (int i=0; i<parity.length/l; i++) {
 			boolean[] temp = new boolean[l];
-			System.arraycopy(binary, i*l, temp, 0, l);
-			temp = multiplyMatrix(R, temp);
-			System.arraycopy(temp, 0, decoded, i*4, 4);
+			System.arraycopy(parity, i*l, temp, 0, l);
+			temp = product(R, temp);
+			System.arraycopy(temp, 0, res, i*4, 4);
 		}
-		
-		char[] result = new char[decoded.length / 8];
-		content = booleanArrayToString(decoded);
-		
-		l = 8;
-		for (int i=0; i<content.length(); i+=l) {
-			String temp = content.substring(i, i+l);
-			System.arraycopy(decodeBits(temp), 0, result, i/l, 1);
-		}
-		
-		return new String(result);
+		return res;
 	}
 	
-	//s1, s2 both 4-character long
-	public static char[] decodeBits(String s) {
-		return Character.toChars(Integer.parseInt(s, 2));
+	public static char[] binaryToChar(boolean[] a) {
+		int l = 8;
+		String binary = booleanArrayToString(a);
+		char[] res = new char[binary.length() / l];
+		
+		for (int i=0; i<binary.length(); i+=l) {
+			String temp = binary.substring(i, i+l);
+			System.arraycopy(Character.toChars(Integer.parseInt(temp, 2)), 0, res, i/l, 1);
+		}
+		return res;
 	}
 
-	public static int findWrongColumn(boolean[] parity) {
+	public static int wrongColumn(boolean[] parity) {
 		for (int j=1; j<H.length; j++) {
 			for (int i=1; i<H[j].length; i++) {
 				if (H[i][j] != parity[j]) {
@@ -222,5 +189,4 @@ public class HammingCode {
 		return -1;
 	}
 	
-
 }
