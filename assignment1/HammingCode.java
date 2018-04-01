@@ -181,16 +181,13 @@ public class HammingCode {
 	}
 
 	public static int wrongColumn(boolean[] col) {
-		for (int j=0; j<H.length; j++) {
+		for (int j = 0; j < H.length; j++) {
 			int count = 0;
-			for (int i=0; i<col.length; i++) {
-				if (H[j][i] == col[j]) {
+			for (int i = 0; i < col.length; i++) {
+				if (H[j][i] == col[j])
 					count++;
-				}
-			}
-			System.out.printf("count: %d, j: %d, col length: %d\n", count, j, col.length);
-			if (count == col.length) {
-				return j;
+				if (count == col.length)
+					return j;
 			}
 		}
 		return -1;
