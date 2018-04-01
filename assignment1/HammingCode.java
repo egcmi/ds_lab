@@ -69,9 +69,8 @@ public class HammingCode {
 	}
 
 	private static boolean product(boolean[] a1, boolean[] a2) {
-		if (a1.length != a2.length) {
+		if (a1.length != a2.length)
 			System.err.println("Cannot multiply arrays of different lengths: " + a1.length + ", " + a2.length);
-		}
 
 		boolean res = false;
 		for (int i = 0; i < a1.length; i++)
@@ -108,9 +107,8 @@ public class HammingCode {
 
 	private static String booleanArrayToString(boolean[] a) {
 		char[] res = new char[a.length];
-		for (int i = 0; i < a.length; i++) {
+		for (int i = 0; i < a.length; i++)
 			res[i] = a[i] ? '1' : '0';
-		}
 		return new String(res);
 	}
 
@@ -129,9 +127,8 @@ public class HammingCode {
 
 	private static boolean[] correctError(boolean[] a) {
 		boolean[] parity = product(H, a); // parity check
-		if (isCorrect(parity)) {
+		if (isCorrect(parity))
 			return a;
-		}
 		
 		int wrong = wrongBit(parity);
 		a[wrong] = !a[wrong];
@@ -149,13 +146,12 @@ public class HammingCode {
 		return a;
 	}
 	
-	private static boolean[] decodeBytes(boolean[] parity) {
-		
+	private static boolean[] decodeBytes(boolean[] encoded) {
 		int l = 7;
-		boolean[] res = new boolean[parity.length / l * 4];
-		for (int i = 0; i < parity.length / l; i++) {
+		boolean[] res = new boolean[encoded.length / l * 4];
+		for (int i = 0; i < encoded.length / l; i++) {
 			boolean[] temp = new boolean[l];
-			System.arraycopy(parity, i * l, temp, 0, l);
+			System.arraycopy(encoded, i * l, temp, 0, l);
 			temp = product(R, temp);
 			System.arraycopy(temp, 0, res, i * 4, 4);
 		}
