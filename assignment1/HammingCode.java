@@ -5,38 +5,108 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class HammingCode {
-	
-	// code-generating matrix
-	private static final boolean[][] G = {		//data  d1 d2 d3 d4
-			{true,	true,	false,	true},		// p1 [ 1, 1, 0, 1 ]
-			{true,	false,	true,	true},		// p2 [ 1, 0, 1, 1 ]
-			{true,	false,	false,	false},		// d1 [ 1, 0, 0, 0 ]
-			{false,	true,	true,	true},		// p3 [ 0, 1, 1, 1 ]
-			{false,	true,	false,	false},		// d2 [ 0, 1, 0, 0 ]
-			{false,	false,	true,	false},		// d3 [ 0, 0, 1, 0 ]
-			{false,	false,	false,	true}		// d4 [ 0, 0, 0, 1 ]
-		};
-	
-	// parity-check matrix
-	private static final boolean[][] H = {								//index 1  2  3  4  5  6  7
-			{true,	false,	true,	false,	true,	false,	true},		// p1 [ 1, 0, 1, 0, 1, 0, 1 ]
-			{false,	true,	true,	false,	false,	true,	true},		// p2 [ 0, 1, 1, 0, 0, 1, 1 ]
-			{false,	false,	false,	true,	true,	true,	true}		// p3 [ 0, 0, 0, 1, 1, 1, 1 ]
-		};
-	
-	// identity matrix for data bits
-	private static final boolean[][] R =  {								//   p1 p2 d1 p3 d2 d3 d4
-			{false,	false,	true,	false,	false,	false,	false},		// [ 0, 0, 1, 0, 0, 0, 0 ]
-			{false,	false,	false,	false,	true,	false,	false},		// [ 0, 0, 0, 0, 1, 0, 0 ]
-			{false,	false,	false,	false,	false,	true,	false},		// [ 0, 0, 0, 0, 0, 1, 0 ]
-			{false,	false,	false,	false,	false,	false,	true}		// [ 0, 0, 0, 0, 0, 0, 1 ]
-	};
-	
+/**
+ * 
+ * Die Klasse HammingCode enthält Tools zum Kodieren und Dekodieren von Daten
+ * mit dem Hamming Code (7,4). Aus diesem Grund ist sie abstrakt und alle
+ * Klassenmethoden und Variablen sind statisch. Die zwei Hauptmethoden sind:
+ * {@code void encode(String message, String filename)} und
+ * {@code String decode(String filename)}, um jeweils eine String-Nachricht in
+ * eine Datei zu kodieren und den Inhalt einer Datei in einen String von Zeichen
+ * zu dekodieren. Beide Methoden sind die einzigen öffentlichen Methoden in der
+ * Klasse. Die anderen Methoden sind privat und dienen lediglich als Hilfsmittel
+ * zu den öffentlichen Methoden. Die Kodierung und Dekodierung wird durch
+ * Multiplikation von booleschen Matrizen und Vektoren berechnet. Zu diesem
+ * Zweck enthält diese Klasse drei zweidimensionale boolesche Arrays ({@code G},
+ * {@code H} und {@code R}, auch private und statische) als Klassenvariablen,
+ * die während der Berechnung verwendet werden. Aus Gründen der Einfachheit und
+ * Effizienz der Berechnung wurden boolesche Datenstrukturen gegenüber anderen
+ * ausgewählt.
+ * 
+ * @author Emanuela Giovanna Calabi - 13186
+ * @author Angelo Rosace - 13386
+ * 
+ */
+public abstract class HammingCode {
+
+	/**
+	 * G ist die Code-Generatormatrix. Die Zeilen 0, 1 und 3 von G bilden die
+	 * Paritätsbits p1, p2 und p3 der Codewörter. Die {@code true} Werten der Zeilen
+	 * geben hierbei an, welche Datenbitstellen in das jeweilige Paritätsbit
+	 * eingerechnet werden. Die Zeilen 2, 4, 5 und 6 mit nur einer {@code true} Wert
+	 * pro Zeile, bilden die Datenbits (d1, d2, d3, d4) im Codewort ab und bilden
+	 * zusammen die Einheitsmatrix. (Wikipedia) Die Generatormatrix wird mit den
+	 * vier Datenbits multipliziert, um ein gültiges Codewort zu erhalten.<br>
+	 * Unten die grafische Darstellung der Matrix mit Nullen anstelle von Falschen
+	 * und Einsen anstelle von Wahren zur einfacheren Visualisierung. <br>
+	 * <br>
+	 * {@code ---- d1 d2 d3 d4} <br>
+	 * {@code p1 [ 1, 1, 0, 1 ]} <br>
+	 * {@code p2 [ 1, 0, 1, 1 ]} <br>
+	 * {@code d1 [ 1, 0, 0, 0 ]} <br>
+	 * {@code p3 [ 0, 1, 1, 1 ]} <br>
+	 * {@code d2 [ 0, 1, 0, 0 ]} <br>
+	 * {@code d3 [ 0, 0, 1, 0 ]} <br>
+	 * {@code d4 [ 0, 0, 0, 1 ]}
+	 */
+	private static final boolean[][] G = {
+			{ true, true, false, true },
+			{ true, false, true, true },
+			{ true, false, false, false },
+			{ false, true, true, true },
+			{ false, true, false, false },
+			{ false, false, true, false },
+			{ false, false, false, true } };
+
+	/**
+	 * H ist die Kontrollmatrix. Sie wird verwendet, um den Syndromvektor auf der
+	 * Empfängerseite zu berechnen, indem H mit einem Codewort multipliziert wird.
+	 * Ist der Syndromvektor der Nullvektor (alle Nullen / Falschen), dann ist das
+	 * empfangene Codewort fehlerfrei. Ansonsten ist sein Wert gleich einer Spalte
+	 * von H, deren Index angibt, welches Bit umgedreht wurde, und das erlaubt seine
+	 * Korrektur (Wikipedia)<br>
+	 * Unten die grafische Darstellung der Matrix mit Nullen anstelle von Falschen
+	 * und Einsen anstelle von Wahren zur einfacheren Visualisierung.<br>
+	 * <br>
+	 * {@code index 0--1--2--3--4--5--6} <br>
+	 * {@code -p1 [ 1, 0, 1, 0, 1, 0, 1 ]}<br>
+	 * {@code -p2 [ 0, 1, 1, 0, 0, 1, 1 ]}<br>
+	 * {@code -p3 [ 0, 0, 0, 1, 1, 1, 1 ]}
+	 */
+	private static final boolean[][] H = {
+			{ true, false, true, false, true, false, true },
+			{ false, true, true, false, false, true, true },
+			{ false, false, false, true, true, true, true } };
+
+	/**
+	 * R is die Einheitsmatrix für die Datenbits. Sie wird verwendet um eine
+	 * korrekte Codewort zu dekodieren, indem R mit der Codewort multipliziert wird.
+	 * Das Ergebnis sind die vier ursprünglichen Datenbits, wenn nicht mehr als ein
+	 * Fehler aufgetreten ist. <br>
+	 * Unten die grafische Darstellung der Matrix mit Nullen anstelle von Falschen
+	 * und Einsen anstelle von Wahren zur einfacheren Visualisierung.<br>
+	 * <br>
+	 * {@code --p1 p2 d1 p3 d2 d3 d4} <br>
+	 * {@code [ 0, 0, 1, 0, 0, 0, 0 ]} <br>
+	 * {@code [ 0, 0, 0, 0, 1, 0, 0 ]} <br>
+	 * {@code [ 0, 0, 0, 0, 0, 1, 0 ]} <br>
+	 * {@code [ 0, 0, 0, 0, 0, 0, 1 ]}
+	 */
+	private static final boolean[][] R = {
+			{ false, false, true, false, false, false, false },
+			{ false, false, false, false, true, false, false },
+			{ false, false, false, false, false, true, false },
+			{ false, false, false, false, false, false, true } };
+
+	/**
+	 * @param message
+	 * @param filename
+	 */
 	public static void encode(String message, String filename) {
 		String res = "";
 		for (int i = 0; i < message.length(); i++) {
-			// read ith character, convert it to 8-character-long binary string, add leading 0s if shorter
+			// read ith character, convert it to 8-character-long binary string, add leading
+			// 0s if shorter
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
 			res += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
 		}
@@ -50,6 +120,10 @@ public class HammingCode {
 		}
 	}
 
+	/**
+	 * @param filename
+	 * @return
+	 */
 	public static String decode(String filename) {
 		// read the whole input file, store the content into this string
 		String content = "";
@@ -68,6 +142,11 @@ public class HammingCode {
 		return new String(binaryToCharArray(decodeBytes(correct(stringToBooleanArray(content)))));
 	}
 
+	/**
+	 * @param a1
+	 * @param a2
+	 * @return
+	 */
 	private static boolean product(boolean[] a1, boolean[] a2) {
 		if (a1.length != a2.length)
 			System.err.println("Cannot multiply arrays of different lengths: " + a1.length + ", " + a2.length);
@@ -78,6 +157,11 @@ public class HammingCode {
 		return res;
 	}
 
+	/**
+	 * @param M
+	 * @param a
+	 * @return
+	 */
 	private static boolean[] product(boolean[][] M, boolean[] a) {
 		boolean[] res = new boolean[M.length];
 		for (int i = 0; i < M.length; i++)
@@ -85,6 +169,10 @@ public class HammingCode {
 		return res;
 	}
 
+	/**
+	 * @param s
+	 * @return
+	 */
 	private static boolean[] stringToBooleanArray(String s) {
 		boolean[] res = new boolean[s.length()];
 
@@ -97,7 +185,8 @@ public class HammingCode {
 				res[i] = true;
 				break;
 			default:
-				System.err.println("Invalid character at position " + i + ": expected 0 or 1 but found \'" + s.charAt(i) + "\'");
+				System.err.println(
+						"Invalid character at position " + i + ": expected 0 or 1 but found \'" + s.charAt(i) + "\'");
 				System.exit(1);
 			}
 		}
@@ -105,6 +194,10 @@ public class HammingCode {
 		return res;
 	}
 
+	/**
+	 * @param a
+	 * @return
+	 */
 	private static String booleanArrayToString(boolean[] a) {
 		char[] res = new char[a.length];
 		for (int i = 0; i < a.length; i++)
@@ -112,6 +205,10 @@ public class HammingCode {
 		return new String(res);
 	}
 
+	/**
+	 * @param a
+	 * @return
+	 */
 	private static boolean isCorrect(boolean[] a) {
 		for (int i = 0; i < a.length; i++)
 			if (a[i])
@@ -119,22 +216,34 @@ public class HammingCode {
 		return true;
 	}
 
+	/**
+	 * @param data
+	 * @return
+	 */
 	private static String encodeBits(String data) {
 		boolean[] temp = stringToBooleanArray(data);
 		temp = product(G, temp);
 		return booleanArrayToString(temp);
 	}
 
+	/**
+	 * @param a
+	 * @return
+	 */
 	private static boolean[] correctError(boolean[] a) {
 		boolean[] parity = product(H, a); // parity check
 		if (isCorrect(parity))
 			return a;
-		
+
 		int wrong = wrongBit(parity);
 		a[wrong] = !a[wrong];
 		return a;
 	}
-	
+
+	/**
+	 * @param a
+	 * @return
+	 */
 	private static boolean[] correct(boolean[] a) {
 		int l = 7;
 		for (int i = 0; i < a.length; i += l) {
@@ -145,7 +254,11 @@ public class HammingCode {
 		}
 		return a;
 	}
-	
+
+	/**
+	 * @param encoded
+	 * @return
+	 */
 	private static boolean[] decodeBytes(boolean[] encoded) {
 		int l = 7;
 		boolean[] res = new boolean[encoded.length / l * 4];
@@ -158,6 +271,10 @@ public class HammingCode {
 		return res;
 	}
 
+	/**
+	 * @param a
+	 * @return
+	 */
 	private static char[] binaryToCharArray(boolean[] a) {
 		int l = 8;
 		String binary = booleanArrayToString(a);
@@ -170,6 +287,10 @@ public class HammingCode {
 		return res;
 	}
 
+	/**
+	 * @param col
+	 * @return
+	 */
 	private static int wrongBit(boolean[] col) {
 		for (int j = 0; j < H[0].length; j++) {
 			int count = 0;
