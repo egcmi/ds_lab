@@ -5,53 +5,186 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class HammingCode {
-	
-	//generating matrix
-	public static final boolean[][] G = {		//data  d1 d2 d3 d4
-			{true,	true,	false,	true},		// p1 [ 1, 1, 0, 1 ]
-			{true,	false,	true,	true},		// p2 [ 1, 0, 1, 1 ]
-			{true,	false,	false,	false},		// d1 [ 1, 0, 0, 0 ]
-			{false,	true,	true,	true},		// p3 [ 0, 1, 1, 1 ]
-			{false,	true,	false,	false},		// d2 [ 0, 1, 0, 0 ]
-			{false,	false,	true,	false},		// d3 [ 0, 0, 1, 0 ]
-			{false,	false,	false,	true}		// d4 [ 0, 0, 0, 1 ]
-		};
-	
-	//parity-check matrix
-	public static final boolean[][] H = {								//index 1  2  3  4  5  6  7
-			{true,	false,	true,	false,	true,	false,	true},		// p1 [ 1, 0, 1, 0, 1, 0, 1 ]
-			{false,	true,	true,	false,	false,	true,	true},		// p2 [ 0, 1, 1, 0, 0, 1, 1 ]
-			{false,	false,	false,	true,	true,	true,	true}		// p3 [ 0, 0, 0, 1, 1, 1, 1 ]
-		};
-	
-	// dot product
-	public static boolean multiplyVector(boolean[] v1, boolean[] v2) {
-		//handle exceptions
-		if (v1.length != v2.length) { // TODO throw new Exception(); maybe throw exception if different lengths
-			System.out.println("Different lengths: " + v1.length + ", " + v2.length);
+/**
+ * 
+ * Die Klasse HammingCode enthält Tools zum Kodieren und Dekodieren von Daten
+ * mit dem Hamming Code (7,4). Aus diesem Grund ist sie abstrakt und alle
+ * Klassenmethoden und Variablen sind statisch. Die zwei Hauptmethoden sind:
+ * {@code void encode(String message, String filename)} und
+ * {@code String decode(String filename)}, um jeweils eine String-Nachricht in
+ * eine Datei zu kodieren und den Inhalt einer Datei in einen String von Zeichen
+ * zu dekodieren. Beide Methoden sind die einzigen öffentlichen Methoden in der
+ * Klasse. Die anderen Methoden sind privat und dienen lediglich als Hilfsmittel
+ * zu den öffentlichen Methoden. Die Kodierung und Dekodierung wird durch
+ * Multiplikation von booleschen Matrizen und Vektoren berechnet. Zu diesem
+ * Zweck enthält diese Klasse drei zweidimensionale boolesche Arrays ({@code G},
+ * {@code H} und {@code R}, auch private und statische) als Klassenvariablen,
+ * die während der Berechnung verwendet werden. Aus Gründen der Einfachheit und
+ * Effizienz der Berechnung wurden boolesche Datenstrukturen gegenüber anderen
+ * ausgewählt.
+ * 
+ * @author Emanuela Giovanna Calabi - 13186
+ * @author Angelo Rosace - 13386
+ * 
+ */
+public abstract class HammingCode {
+
+	/**
+	 * G ist die Code-Generatormatrix. Die Zeilen 0, 1 und 3 von G bilden die
+	 * Paritätsbits p1, p2 und p3 der Codewörter. Die {@code true} Werten der Zeilen
+	 * geben hierbei an, welche Datenbitstellen in das jeweilige Paritätsbit
+	 * eingerechnet werden. Die Zeilen 2, 4, 5 und 6 mit nur einer {@code true} Wert
+	 * pro Zeile, bilden die Datenbits (d1, d2, d3, d4) im Codewort ab und bilden
+	 * zusammen die Einheitsmatrix. (Wikipedia) Die Generatormatrix wird mit den
+	 * vier Datenbits multipliziert, um ein gültiges Codewort zu erhalten.<br>
+	 * Unten die grafische Darstellung der Matrix mit Nullen anstelle von Falschen
+	 * und Einsen anstelle von Wahren zur einfacheren Visualisierung. <br>
+	 * <br>
+	 * {@code ---- d1 d2 d3 d4} <br>
+	 * {@code p1 [ 1, 1, 0, 1 ]} <br>
+	 * {@code p2 [ 1, 0, 1, 1 ]} <br>
+	 * {@code d1 [ 1, 0, 0, 0 ]} <br>
+	 * {@code p3 [ 0, 1, 1, 1 ]} <br>
+	 * {@code d2 [ 0, 1, 0, 0 ]} <br>
+	 * {@code d3 [ 0, 0, 1, 0 ]} <br>
+	 * {@code d4 [ 0, 0, 0, 1 ]}
+	 */
+	private static final boolean[][] G = {
+			{ true, true, false, true },
+			{ true, false, true, true },
+			{ true, false, false, false },
+			{ false, true, true, true },
+			{ false, true, false, false },
+			{ false, false, true, false },
+			{ false, false, false, true } };
+
+	/**
+	 * H ist die Kontrollmatrix. Sie wird verwendet, um den Syndromvektor auf der
+	 * Empfängerseite zu berechnen, indem H mit einem Codewort multipliziert wird.
+	 * Ist der Syndromvektor der Nullvektor (alle Nullen / Falschen), dann ist das
+	 * empfangene Codewort fehlerfrei. Ansonsten ist sein Wert gleich einer Spalte
+	 * von H, deren Index angibt, welches Bit umgedreht wurde, und das erlaubt seine
+	 * Korrektur (Wikipedia)<br>
+	 * Unten die grafische Darstellung der Matrix mit Nullen anstelle von Falschen
+	 * und Einsen anstelle von Wahren zur einfacheren Visualisierung.<br>
+	 * <br>
+	 * {@code index 0--1--2--3--4--5--6} <br>
+	 * {@code -p1 [ 1, 0, 1, 0, 1, 0, 1 ]}<br>
+	 * {@code -p2 [ 0, 1, 1, 0, 0, 1, 1 ]}<br>
+	 * {@code -p3 [ 0, 0, 0, 1, 1, 1, 1 ]}
+	 */
+	private static final boolean[][] H = {
+			{ true, false, true, false, true, false, true },
+			{ false, true, true, false, false, true, true },
+			{ false, false, false, true, true, true, true } };
+
+	/**
+	 * R is die Einheitsmatrix für die Datenbits. Sie wird verwendet um eine
+	 * korrekte Codewort zu dekodieren, indem R mit der Codewort multipliziert wird.
+	 * Das Ergebnis sind die vier ursprünglichen Datenbits, wenn nicht mehr als ein
+	 * Fehler aufgetreten ist. <br>
+	 * Unten die grafische Darstellung der Matrix mit Nullen anstelle von Falschen
+	 * und Einsen anstelle von Wahren zur einfacheren Visualisierung.<br>
+	 * <br>
+	 * {@code --p1 p2 d1 p3 d2 d3 d4} <br>
+	 * {@code [ 0, 0, 1, 0, 0, 0, 0 ]} <br>
+	 * {@code [ 0, 0, 0, 0, 1, 0, 0 ]} <br>
+	 * {@code [ 0, 0, 0, 0, 0, 1, 0 ]} <br>
+	 * {@code [ 0, 0, 0, 0, 0, 0, 1 ]}
+	 */
+	private static final boolean[][] R = {
+			{ false, false, true, false, false, false, false },
+			{ false, false, false, false, true, false, false },
+			{ false, false, false, false, false, true, false },
+			{ false, false, false, false, false, false, true } };
+
+	/**
+	 * 
+	 * 
+	 * @param message
+	 *            eine zu kodierende Nachricht aus ASCII-Zeichen
+	 * @param filename
+	 *            eine Ausgabedatei, in der die kodierte Nachricht gespeichert wird.
+	 */
+	public static void encode(String message, String filename) {
+		String res = "";
+		for (int i = 0; i < message.length(); i++) {
+			// read ith character, convert it to 8-character-long binary string, add leading
+			// 0s if shorter
+			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
+			res += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
 		}
-		
+
+		try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
+			out.print(res);
+			out.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("File " + filename + " not found.");
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * @param filename
+	 *            eine zu dekodierende Eingabedatei
+	 * @return der dekodierte String aus ASCII-Zeichen
+	 */
+	public static String decode(String filename) {
+		// read the whole input file, store the content into this string
+		String content = "";
+		try {
+			content = new String(Files.readAllBytes(Paths.get(filename)));
+			if (content.length() % 14 != 0) {
+				System.err.println("Input length " + content.length() + " not valid: must be multiple of 14.");
+				return "";
+			}
+		} catch (IOException e) {
+			System.err.println("File " + filename + " not found.");
+			e.printStackTrace();
+			return "";
+		}
+
+		return new String(binaryToCharArray(decodeBytes(correct(stringToBooleanArray(content)))));
+	}
+
+	/**
+	 * @param a1
+	 *            das erste zu multiplizierende boolesche Array
+	 * @param a2
+	 *            das zweite zu multiplizierende boolesche Array
+	 * @return der boolesche Wert, Ergebnis der Multiplikation
+	 */
+	private static boolean product(boolean[] a1, boolean[] a2) {
+		if (a1.length != a2.length)
+			System.err.println("Cannot multiply arrays of different lengths: " + a1.length + ", " + a2.length);
+
 		boolean res = false;
-		for (int i = 0; i < v1.length; i++) {
-			res = res != (v1[i] && v2[i]);
-		}
+		for (int i = 0; i < a1.length; i++)
+			res = res != (a1[i] && a2[i]);
 		return res;
 	}
 
-	// parity check
-	public static boolean[] multiplyMatrix(boolean[][] m, boolean[] v) {
-		boolean[] res = new boolean[m.length];
-
-		for (int i = 0; i < m.length; i++) {
-			res[i] = multiplyVector(m[i], v);
-			if (res[i])
-				System.out.println(i);
-		}
+	/**
+	 * @param M
+	 *            ein zu multiplizierendes zweidimensionales boolesche Array
+	 * @param a
+	 *            ein zu multiplizierendes eindimensionales boolesche Array
+	 * @return das eindimensionale boolesche Array, Ergebnis der Multiplikation
+	 */
+	private static boolean[] product(boolean[][] M, boolean[] a) {
+		boolean[] res = new boolean[M.length];
+		for (int i = 0; i < M.length; i++)
+			res[i] = product(M[i], a);
 		return res;
 	}
 
-	public static boolean[] stringToBooleanVector(String s) {
+	/**
+	 * @param s
+	 *            ein String von Nullen und Einsen, die in ein boolesches Array
+	 *            übersetzt werden sollen.
+	 * @return das boolesche Array entsprechend der Eingabe String
+	 */
+	private static boolean[] stringToBooleanArray(String s) {
 		boolean[] res = new boolean[s.length()];
 
 		for (int i = 0; i < s.length(); i++) {
@@ -63,162 +196,146 @@ public class HammingCode {
 				res[i] = true;
 				break;
 			default:
-				// TODO throw new Exception(); throw exception if not 0 or 1 + print error message
-				break; 
+				System.err.println(
+						"Invalid character at position " + i + ": expected 0 or 1 but found \'" + s.charAt(i) + "\'");
+				System.exit(1);
 			}
 		}
 
 		return res;
 	}
 
-	public static String booleanVectorToString(boolean[] v) {
-		char[] res = new char[v.length];
-		for (int i = 0; i < v.length; i++) {
-			res[i] = v[i] ? '1' : '0';
-		}
+	/**
+	 * @param a
+	 *            ein boolesches Array, das in einen String aus Nullen und Einsen
+	 *            übersetzt werden soll.
+	 * @return der String aus Nullen und Einsen entsprechend das eingegebene
+	 *         boolesche Array
+	 */
+	private static String booleanArrayToString(boolean[] a) {
+		char[] res = new char[a.length];
+		for (int i = 0; i < a.length; i++)
+			res[i] = a[i] ? '1' : '0';
 		return new String(res);
 	}
 
-	public static boolean isCorrect(boolean[] v) {
-		for (int i = 0; i < v.length; i++)
-			if (v[i])
+	/**
+	 * @param a
+	 *            ein boolesches Array, das auf Korrektheit geprüft werden soll. Es
+	 *            entspricht dem Syndromvektor
+	 * @return true, wenn das boolesche Array ein Nullvektor ist. false andernfalls
+	 */
+	private static boolean isCorrect(boolean[] a) {
+		for (int i = 0; i < a.length; i++)
+			if (a[i])
 				return false;
 		return true;
 	}
 
-	public static void writeToFile(boolean[] v, String filename) {
-		// TODO transform boolean vector into string of 0s and 1s and print it into the
-		// file
-	}
-
-	public static boolean[] readFromFile(String filename) {
-		// TODO read the given file and transform it into a boolean vector
-		boolean[] v = { true, false }; // dummy vector
-		return v;
-	}
-
+	/**
+	 * 
+	 * @param data
+	 *            ein vierstelliger String aus Nullen und Einsen, die kodiert werden
+	 *            soll.
+	 * @return der siebenstellige String aus Nullen und Einsen, der dem eingegebenen
+	 *         String mit zusätzlichen Paritätsbits entspricht.
+	 */
 	private static String encodeBits(String data) {
-		// TODO maybe use vector-matrix multiplication for more efficiency
-
-		int d1 = Integer.parseInt(data.charAt(0) + "");
-		int d2 = Integer.parseInt(data.charAt(1) + "");
-		int d3 = Integer.parseInt(data.charAt(2) + "");
-		int d4 = Integer.parseInt(data.charAt(3) + "");
-
-		int p1 = (d1 + d2 + d4) % 2;
-		int p2 = (d1 + d3 + d4) % 2;
-		int p3 = (d2 + d3 + d4) % 2;
-
-		return "" + p1 + p2 + d1 + p3 + d2 + d3 + d4;
+		boolean[] temp = stringToBooleanArray(data);
+		temp = product(G, temp);
+		return booleanArrayToString(temp);
 	}
 
-	public static void encode(String message, String filename) {
-		// TODO maybe use char[] for more efficiency
-
-		String result = "";
-		for (int i = 0; i < message.length(); i++) {
-			// read ith character, convert it to 8-character-long binary string, add leading
-			// 0s if shorter
-			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
-			result += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
+	/**
+	 * @param a
+	 *            ein boolesches Array, das einer vollständig kodierten Nachricht
+	 *            entspricht, die korrigiert werden soll.
+	 * @return das fehlerfreie boolesche Array entsprechend dem eingegebenen
+	 *         booleschen Array
+	 */
+	private static boolean[] correct(boolean[] a) {
+		int l = 7;
+		for (int i = 0; i < a.length; i += l) {
+			boolean[] temp = new boolean[l];
+			System.arraycopy(a, i, temp, 0, l);
+			temp = correctError(temp);
+			System.arraycopy(temp, 0, a, i, l);
 		}
-		System.out.println(result);
-
-		try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
-			out.print(result);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public static String decode(String filename) {
-		String content = "";
-		String result = "";
-		//ho aggiunto questa stringa
-		String current = "";
-		String resultChar = "";
-		try {
-			// read input file in one step, store the content into a string, without having to iterate line by line
-			// a valid input file will contain only one line of code anyway
-			content = new String(Files.readAllBytes(Paths.get(filename)));
-			if (content.length() % 7 != 0) {
-				System.out.println("Input length " + content.length() + " not valid: must be multiple of 7");
-				// TODO throw exception maybe: se la lunghezza della stringa non è multipla di 7
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		//while string content not empty:
-		// temp = read first 7 characters of content and transform it into boolean[]
-		// do stuff: decode, correct errors if needed, concatenate correct result to res
-		// reassignment: content = content MINUS first 7 characters
-		while (content.length() != 0) {
-			boolean[] temp = stringToBooleanVector(content.substring(0, 7));
-			boolean[] correct = correctError(temp);
-			result += booleanVectorToString(correct);
-			content = content.substring(7);
-		}
-		//now result is correct, proceed to actual decoding
-		
-		//TODO:
-		//	divide result in substrings of length 14
-		while(reult.length() != 0){
-			current = result.substring(0,13);
-		//	split 14string into 2 7strings	
-			String curr1 = current.substring(0,6);
-			String curr2 = current.substring(7,13);
-		//	remove 1st, 2nd, 4th characters from each -> get 4 data bits from each
-			String data1 = stringToData(curr1);
-			String data2 = stringToData(curr2);
-		//	concatenate 4+4 data bits into 1 byte
-			String currentData = data1 + data2;
-		//	transform byte into character
-			int dataInt = Integer.parseInt(currentData,2);
-			char dataChar = Character.toChars(dataInt);
-		//	concatenate all resulting characters
-			resultChar += dataChar;
-			current = current.substring(14);	
-		}
-		//	return (correctly) decoded result
-		return resultChar;
+		return a;
 	}
 	
-	//s1, s2 both 4-character long
-	public static char[] decodeBits(String s1, String s2) {
-		return Character.toChars(Integer.parseInt(s1+s2, 2));
+	/**
+	 * @param a
+	 *            ein kodiertes boolesches Array der Länge 7, das maximal einen
+	 *            1-Bit-Fehler enthält
+	 * @return das fehlerfreie boolesche Array entsprechend der Eingabe
+	 */
+	private static boolean[] correctError(boolean[] a) {
+		boolean[] parity = product(H, a); // parity check
+		if (isCorrect(parity))
+			return a;
+
+		int wrong = wrongBit(parity);
+		a[wrong] = !a[wrong];
+		return a;
 	}
 
-	public static String stringToData(String s) {
-		boolean[] temp = stringToBooleanVector(s);
-		temp = multiplyMatrix(G, temp);
-		return booleanVectorToString(temp);
+	/**
+	 * @param encoded
+	 *            ein fehlerfreies kodiertes boolesches Array, das dekodiert werden
+	 *            soll.
+	 * @return das dekodierte boolesche Array, das dem eingegebenen booleschen Array
+	 *         ohne die Paritätsbits entspricht.
+	 */
+	private static boolean[] decodeBytes(boolean[] encoded) {
+		int l = 7;
+		boolean[] res = new boolean[encoded.length / l * 4];
+		for (int i = 0; i < encoded.length / l; i++) {
+			boolean[] temp = new boolean[l];
+			System.arraycopy(encoded, i * l, temp, 0, l);
+			temp = product(R, temp);
+			System.arraycopy(temp, 0, res, i * 4, 4);
+		}
+		return res;
 	}
-	
-	public static int wrongColumn(boolean[] parity) {
-		for (int j=1; j<H.length; j++) {
-			for (int i=1; i<H[j].length; i++) {
-				if (H[i][j] != parity[j]) {
-					break;
-				}
-				if (i == parity.length) {
-					return i;
-				}
+
+	/**
+	 * @param a
+	 *            ein boolesches Array, dessen Werte in Gruppen von 8 als binäre
+	 *            Ganzzahl einem ASCII-Zeichen entsprechen.
+	 * @return das Zeichen-Array, dessen Werte aus dem eingegebenen booleschen Array
+	 *         berechnet werden.
+	 */
+	private static char[] binaryToCharArray(boolean[] a) {
+		int l = 8;
+		String binary = booleanArrayToString(a);
+		char[] res = new char[binary.length() / l];
+
+		for (int i = 0; i < binary.length(); i += l) {
+			String temp = binary.substring(i, i + l);
+			System.arraycopy(Character.toChars(Integer.parseInt(temp, 2)), 0, res, i / l, 1);
+		}
+		return res;
+	}
+
+	/**
+	 * @param col
+	 *            ein boolesches Array entsprechend dem Syndromvektor eines
+	 *            fehlerhaften Bits
+	 * @return der Index des falschen Bits im kodierten booleschen Array (außerhalb
+	 *         des Bereichs dieser Methode)
+	 */
+	private static int wrongBit(boolean[] col) {
+		for (int j = 0; j < H[0].length; j++) {
+			int count = 0;
+			for (int i = 0; i < col.length; i++) {
+				if (H[i][j] == col[i])
+					count++;
+				if (count == col.length)
+					return j;
 			}
 		}
 		return -1;
 	}
-	
-	public static boolean[] correctError(boolean[] v) {
-		boolean[] parity = multiplyMatrix(H, v);	//parity check
-		if (isCorrect(parity)) {
-			return v;
-		}
-		
-		int wrong = wrongColumn(parity);
-		v[wrong] = !v[wrong];
-		return v;
-	}
+
 }
