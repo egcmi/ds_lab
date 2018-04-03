@@ -101,8 +101,9 @@ public abstract class HammingCode {
 	/**
 	 * Diese Methode kodiert den angegebenen ASCII-String in einen binären String.
 	 * Es übersetzt jedes Zeichen iterativ in einen achtstelligen Binärstring, teilt
-	 * es in zwei vierstellige Binärstrings, kodiert dann jedes einzeln und
-	 * verkettet die resultierende Kodierung in das Ergebnis String
+	 * es in zwei vierstellige Binärstrings, kodiert dann jedes einzeln durch
+	 * {@link #encodeBits(String)} und verkettet die resultierende Kodierung in das
+	 * Ergebnis String, die in einer Datei gespeichert wird
 	 * 
 	 * @param message
 	 *            eine zu kodierende Nachricht aus ASCII-Zeichen
@@ -112,8 +113,6 @@ public abstract class HammingCode {
 	public static void encode(String message, String filename) {
 		String res = "";
 		for (int i = 0; i < message.length(); i++) {
-			// read ith character, convert it to 8-character-long binary string, add leading
-			// 0s if shorter
 			String temp = String.format("%8s", Integer.toBinaryString(message.charAt(i))).replace(' ', '0');
 			res += encodeBits(temp.substring(0, 4)) + encodeBits(temp.substring(4, 8));
 		}
@@ -128,17 +127,20 @@ public abstract class HammingCode {
 	}
 
 	/**
-	 *
-	 * Diese Methode liest die Datei und speichert den Inhalt in einem String. 
-	 * Die Stringlänge muss ein Vielfache von 14 sein.
-	 * Der Dekodierungsprozess wird von den Hilfsmethoden durchgeführt.  
+	 * Diese Methode liest die Datei und speichert den Inhalt in einem String. Die
+	 * Stringlänge muss ein Vielfache von 14 sein. Der Dekodierungsprozess wird von
+	 * den Hilfsmethoden durchgeführt.
+	 * 
+	 * @see #binaryToCharArray(boolean[])
+	 * @see #decodeBytes(boolean[])
+	 * @see #correct(boolean[])
+	 * @see #stringToBooleanArray(String)
 	 *
 	 * @param filename
 	 *            eine zu dekodierende Eingabedatei
 	 * @return der dekodierte String aus ASCII-Zeichen
 	 */
 	public static String decode(String filename) {
-		
 		String content = "";
 		try {
 			content = new String(Files.readAllBytes(Paths.get(filename)));
@@ -168,8 +170,10 @@ public abstract class HammingCode {
 	 * @return der boolesche Wert, Ergebnis der Multiplikation
 	 */
 	private static boolean product(boolean[] a1, boolean[] a2) {
-		if (a1.length != a2.length)
+		if (a1.length != a2.length) {
 			System.err.println("Cannot multiply arrays of different lengths: " + a1.length + ", " + a2.length);
+			System.exit(1);
+		}
 
 		boolean res = false;
 		for (int i = 0; i < a1.length; i++)
@@ -194,8 +198,10 @@ public abstract class HammingCode {
 	 * @return das eindimensionale boolesche Array, Ergebnis der Multiplikation
 	 */
 	private static boolean[] product(boolean[][] M, boolean[] a) {
-		if (M[0].length != a.length)
+		if (M[0].length != a.length) {
 			System.err.println("Cannot multiply arrays of different lengths: " + M.length + ", " + a.length);
+			System.exit(1);
+		}
 
 		boolean[] res = new boolean[M.length];
 		for (int i = 0; i < M.length; i++)
@@ -204,7 +210,7 @@ public abstract class HammingCode {
 	}
 
 	/**
-	 *	Diese Methode übersetzt einen String in eines boolesche Array.
+	 *	Diese Methode übersetzt einen Binärstring in ein boolesches Array.
 	 *			 
 	 * @param s
 	 *            ein String von Nullen und Einsen, die in ein boolesches Array
@@ -250,7 +256,7 @@ public abstract class HammingCode {
 
 	/**
 	 * Diese Methode prüft die Korrektheit eines Syndromvektors in Form eines
-	 * booleschen Arrays, d.h. sie prüft, ob alle Werte Null / Falsch sind.
+	 * booleschen Arrays, d.h. sie prüft, ob alle Werte Null/Falsch sind.
 	 * 
 	 * @param a
 	 *            ein boolesches Array, das auf Korrektheit geprüft werden soll. Es
@@ -266,7 +272,11 @@ public abstract class HammingCode {
 
 	/**
 	 * Diese Methode kodiert einen vierstelligen Binärstring in einen
-	 * siebenstelligen Binärstring.
+	 * siebenstelligen Binärstring durch Hilfsmethoden.
+	 * 
+	 * @see #stringToBooleanArray(String)
+	 * @see #product(boolean[][], boolean[])
+	 * @see #booleanArrayToString(boolean[])
 	 * 
 	 * @param data
 	 *            ein vierstelliger String aus Nullen und Einsen, die kodiert werden
@@ -283,6 +293,8 @@ public abstract class HammingCode {
 	/**
 	 * Diese Methode korrigiert 1-Bit-Fehler in einem booleschen Array, das einen
 	 * kodierten binären String darstellt.
+	 * 
+	 * @see #correctError(boolean[])
 	 * 
 	 * @param a
 	 *            ein boolesches Array, das einer vollständig kodierten Nachricht
@@ -305,6 +317,8 @@ public abstract class HammingCode {
 	 * Diese Methode korrigiert 1-Bit-Fehler in einem booleschen Array der Länge 7,
 	 * das ein Codewort darstellt.
 	 * 
+	 * @see #wrongBit(boolean[])
+	 * 
 	 * @param a
 	 *            ein kodiertes boolesches Array der Länge 7, das maximal einen
 	 *            1-Bit-Fehler enthält
@@ -323,7 +337,8 @@ public abstract class HammingCode {
 	/**
 	 * Diese Methode dekodiert iterativ ein fehlerfreies boolesches Array mit
 	 * jeweils sieben Werten und speichert das Ergebnis in einem anderen booleschen
-	 * Array mit jeweils vier Werten.
+	 * Array mit jeweils vier Werten durch die Methode
+	 * #{@link #product(boolean[][], boolean[])}.
 	 * 
 	 * @param encoded
 	 *            ein fehlerfreies kodiertes boolesches Array, das dekodiert werden
@@ -345,9 +360,10 @@ public abstract class HammingCode {
 
 	/**
 	 * Diese Methode liest ein eingegebenes boolesches Array, übersetzt es mit der
-	 * Methode booleanArray in einen binären String, liest diesen String dann
-	 * jeweils 8 Zeichen, übersetzt diesen String in eine binäre Ganzzahl, findet
-	 * sein entsprechendes ASCII-Zeichen und speichert es im Ergebnis-Zeichenarray.
+	 * Methode booleanArray in einen binären String durch die Methode
+	 * {@link #booleanArrayToString(boolean[])}, liest diesen String dann jeweils 8
+	 * Zeichen, übersetzt diesen String in eine binäre Ganzzahl, findet sein
+	 * entsprechendes ASCII-Zeichen und speichert es im Ergebnis-Zeichenarray.
 	 * 
 	 * @param a
 	 *            ein boolesches Array, dessen Werte in Gruppen von 8 als binäre
