@@ -148,6 +148,11 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode berechnet die Multiplikation zweier boolescher Arrays gleicher
+	 * Länge. Die Multiplikation boolescher Werte wird iterativ durch XORieren der
+	 * Ergebnisse der UND-Verknüpfung zwischen den i-ten Werten der beiden
+	 * eingegebenen booleschen Arrays berechnet.
+	 * 
 	 * @param a1
 	 *            das erste zu multiplizierende boolesche Array
 	 * @param a2
@@ -165,6 +170,15 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode berechnet die Multiplikation eines zweidimensionalen booleschen
+	 * Arrays mit einem eindimensionalen booleschen Array. Die Anzahl der Spalten
+	 * des zweidimensionalen Arrays muss gleich der Länge des eindimensionalen
+	 * Arrays sein. Das Produkt wird iterativ berechnet, indem die Methode
+	 * {@link #product(boolean[], boolean[])} auf jeder der Zeilen des
+	 * zweidimensionalen Arrays und des eindimensionalen Arrays aufgerufen wird.
+	 * aufgerufen wird. Das resultierende boolesche Array ist so lang wie die Anzahl
+	 * der Spalten des zweidimensionalen Arrays.
+	 * 
 	 * @param M
 	 *            ein zu multiplizierendes zweidimensionales boolesche Array
 	 * @param a
@@ -172,6 +186,9 @@ public abstract class HammingCode {
 	 * @return das eindimensionale boolesche Array, Ergebnis der Multiplikation
 	 */
 	private static boolean[] product(boolean[][] M, boolean[] a) {
+		if (M[0].length != a.length)
+			System.err.println("Cannot multiply arrays of different lengths: " + M.length + ", " + a.length);
+
 		boolean[] res = new boolean[M.length];
 		for (int i = 0; i < M.length; i++)
 			res[i] = product(M[i], a);
