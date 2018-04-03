@@ -99,7 +99,10 @@ public abstract class HammingCode {
 			{ false, false, false, false, false, false, true } };
 
 	/**
-	 * 
+	 * Diese Methode kodiert den angegebenen ASCII-String in einen binären String.
+	 * Es übersetzt jedes Zeichen iterativ in einen achtstelligen Binärstring, teilt
+	 * es in zwei vierstellige Binärstrings, kodiert dann jedes einzeln und
+	 * verkettet die resultierende Kodierung in das Ergebnis String
 	 * 
 	 * @param message
 	 *            eine zu kodierende Nachricht aus ASCII-Zeichen
@@ -246,6 +249,9 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode prüft die Korrektheit eines Syndromvektors in Form eines
+	 * booleschen Arrays, d.h. sie prüft, ob alle Werte Null / Falsch sind.
+	 * 
 	 * @param a
 	 *            ein boolesches Array, das auf Korrektheit geprüft werden soll. Es
 	 *            entspricht dem Syndromvektor
@@ -259,6 +265,8 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode kodiert einen vierstelligen Binärstring in einen
+	 * siebenstelligen Binärstring.
 	 * 
 	 * @param data
 	 *            ein vierstelliger String aus Nullen und Einsen, die kodiert werden
@@ -273,6 +281,9 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode korrigiert 1-Bit-Fehler in einem booleschen Array, das einen
+	 * kodierten binären String darstellt.
+	 * 
 	 * @param a
 	 *            ein boolesches Array, das einer vollständig kodierten Nachricht
 	 *            entspricht, die korrigiert werden soll.
@@ -291,6 +302,9 @@ public abstract class HammingCode {
 	}
 	
 	/**
+	 * Diese Methode korrigiert 1-Bit-Fehler in einem booleschen Array der Länge 7,
+	 * das ein Codewort darstellt.
+	 * 
 	 * @param a
 	 *            ein kodiertes boolesches Array der Länge 7, das maximal einen
 	 *            1-Bit-Fehler enthält
@@ -307,6 +321,10 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode dekodiert iterativ ein fehlerfreies boolesches Array mit
+	 * jeweils sieben Werten und speichert das Ergebnis in einem anderen booleschen
+	 * Array mit jeweils vier Werten.
+	 * 
 	 * @param encoded
 	 *            ein fehlerfreies kodiertes boolesches Array, das dekodiert werden
 	 *            soll.
@@ -326,6 +344,11 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * Diese Methode liest ein eingegebenes boolesches Array, übersetzt es mit der
+	 * Methode booleanArray in einen binären String, liest diesen String dann
+	 * jeweils 8 Zeichen, übersetzt diesen String in eine binäre Ganzzahl, findet
+	 * sein entsprechendes ASCII-Zeichen und speichert es im Ergebnis-Zeichenarray.
+	 * 
 	 * @param a
 	 *            ein boolesches Array, dessen Werte in Gruppen von 8 als binäre
 	 *            Ganzzahl einem ASCII-Zeichen entsprechen.
