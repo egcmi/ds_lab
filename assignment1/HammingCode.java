@@ -99,8 +99,12 @@ public abstract class HammingCode {
 			{ false, false, false, false, false, false, true } };
 
 	/**
+	 * 
+	 * 
 	 * @param message
+	 *            eine zu kodierende Nachricht aus ASCII-Zeichen
 	 * @param filename
+	 *            eine Ausgabedatei, in der die kodierte Nachricht gespeichert wird.
 	 */
 	public static void encode(String message, String filename) {
 		String res = "";
@@ -122,7 +126,8 @@ public abstract class HammingCode {
 
 	/**
 	 * @param filename
-	 * @return
+	 *            eine zu dekodierende Eingabedatei
+	 * @return der dekodierte String aus ASCII-Zeichen
 	 */
 	public static String decode(String filename) {
 		// read the whole input file, store the content into this string
@@ -144,8 +149,10 @@ public abstract class HammingCode {
 
 	/**
 	 * @param a1
+	 *            das erste zu multiplizierende boolesche Array
 	 * @param a2
-	 * @return
+	 *            das zweite zu multiplizierende boolesche Array
+	 * @return der boolesche Wert, Ergebnis der Multiplikation
 	 */
 	private static boolean product(boolean[] a1, boolean[] a2) {
 		if (a1.length != a2.length)
@@ -159,8 +166,10 @@ public abstract class HammingCode {
 
 	/**
 	 * @param M
+	 *            ein zu multiplizierendes zweidimensionales boolesche Array
 	 * @param a
-	 * @return
+	 *            ein zu multiplizierendes eindimensionales boolesche Array
+	 * @return das eindimensionale boolesche Array, Ergebnis der Multiplikation
 	 */
 	private static boolean[] product(boolean[][] M, boolean[] a) {
 		boolean[] res = new boolean[M.length];
@@ -171,7 +180,9 @@ public abstract class HammingCode {
 
 	/**
 	 * @param s
-	 * @return
+	 *            ein String von Nullen und Einsen, die in ein boolesches Array
+	 *            übersetzt werden sollen.
+	 * @return das boolesche Array entsprechend der Eingabe String
 	 */
 	private static boolean[] stringToBooleanArray(String s) {
 		boolean[] res = new boolean[s.length()];
@@ -196,7 +207,10 @@ public abstract class HammingCode {
 
 	/**
 	 * @param a
-	 * @return
+	 *            ein boolesches Array, das in einen String aus Nullen und Einsen
+	 *            übersetzt werden soll.
+	 * @return der String aus Nullen und Einsen entsprechend das eingegebene
+	 *         boolesche Array
 	 */
 	private static String booleanArrayToString(boolean[] a) {
 		char[] res = new char[a.length];
@@ -207,7 +221,9 @@ public abstract class HammingCode {
 
 	/**
 	 * @param a
-	 * @return
+	 *            ein boolesches Array, das auf Korrektheit geprüft werden soll. Es
+	 *            entspricht dem Syndromvektor
+	 * @return true, wenn das boolesche Array ein Nullvektor ist. false andernfalls
 	 */
 	private static boolean isCorrect(boolean[] a) {
 		for (int i = 0; i < a.length; i++)
@@ -217,8 +233,12 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 * 
 	 * @param data
-	 * @return
+	 *            ein vierstelliger String aus Nullen und Einsen, die kodiert werden
+	 *            soll.
+	 * @return der siebenstellige String aus Nullen und Einsen, der dem eingegebenen
+	 *         String mit zusätzlichen Paritätsbits entspricht.
 	 */
 	private static String encodeBits(String data) {
 		boolean[] temp = stringToBooleanArray(data);
@@ -228,7 +248,27 @@ public abstract class HammingCode {
 
 	/**
 	 * @param a
-	 * @return
+	 *            ein boolesches Array, das einer vollständig kodierten Nachricht
+	 *            entspricht, die korrigiert werden soll.
+	 * @return das fehlerfreie boolesche Array entsprechend dem eingegebenen
+	 *         booleschen Array
+	 */
+	private static boolean[] correct(boolean[] a) {
+		int l = 7;
+		for (int i = 0; i < a.length; i += l) {
+			boolean[] temp = new boolean[l];
+			System.arraycopy(a, i, temp, 0, l);
+			temp = correctError(temp);
+			System.arraycopy(temp, 0, a, i, l);
+		}
+		return a;
+	}
+	
+	/**
+	 * @param a
+	 *            ein kodiertes boolesches Array der Länge 7, das maximal einen
+	 *            1-Bit-Fehler enthält
+	 * @return das fehlerfreie boolesche Array entsprechend der Eingabe
 	 */
 	private static boolean[] correctError(boolean[] a) {
 		boolean[] parity = product(H, a); // parity check
@@ -241,23 +281,11 @@ public abstract class HammingCode {
 	}
 
 	/**
-	 * @param a
-	 * @return
-	 */
-	private static boolean[] correct(boolean[] a) {
-		int l = 7;
-		for (int i = 0; i < a.length; i += l) {
-			boolean[] temp = new boolean[l];
-			System.arraycopy(a, i, temp, 0, l);
-			temp = correctError(temp);
-			System.arraycopy(temp, 0, a, i, l);
-		}
-		return a;
-	}
-
-	/**
 	 * @param encoded
-	 * @return
+	 *            ein fehlerfreies kodiertes boolesches Array, das dekodiert werden
+	 *            soll.
+	 * @return das dekodierte boolesche Array, das dem eingegebenen booleschen Array
+	 *         ohne die Paritätsbits entspricht.
 	 */
 	private static boolean[] decodeBytes(boolean[] encoded) {
 		int l = 7;
@@ -273,7 +301,10 @@ public abstract class HammingCode {
 
 	/**
 	 * @param a
-	 * @return
+	 *            ein boolesches Array, dessen Werte in Gruppen von 8 als binäre
+	 *            Ganzzahl einem ASCII-Zeichen entsprechen.
+	 * @return das Zeichen-Array, dessen Werte aus dem eingegebenen booleschen Array
+	 *         berechnet werden.
 	 */
 	private static char[] binaryToCharArray(boolean[] a) {
 		int l = 8;
@@ -289,7 +320,10 @@ public abstract class HammingCode {
 
 	/**
 	 * @param col
-	 * @return
+	 *            ein boolesches Array entsprechend dem Syndromvektor eines
+	 *            fehlerhaften Bits
+	 * @return der Index des falschen Bits im kodierten booleschen Array (außerhalb
+	 *         des Bereichs dieser Methode)
 	 */
 	private static int wrongBit(boolean[] col) {
 		for (int j = 0; j < H[0].length; j++) {
