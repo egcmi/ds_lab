@@ -125,12 +125,17 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 *
+	 * Diese Methode liest die Datei und speichert den Inhalt in einem String. 
+	 * Die Stringlänge muss ein Vielfache von 14 sein.
+	 * Der Dekodierungsprozess wird von den Hilfsmethoden durchgeführt.  
+	 *
 	 * @param filename
 	 *            eine zu dekodierende Eingabedatei
 	 * @return der dekodierte String aus ASCII-Zeichen
 	 */
 	public static String decode(String filename) {
-		// read the whole input file, store the content into this string
+		
 		String content = "";
 		try {
 			content = new String(Files.readAllBytes(Paths.get(filename)));
