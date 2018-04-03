@@ -99,7 +99,10 @@ public abstract class HammingCode {
 			{ false, false, false, false, false, false, true } };
 
 	/**
-	 * 
+	 * Diese Methode kodiert den angegebenen ASCII-String in einen binären String.
+	 * Es übersetzt jedes Zeichen iterativ in einen achtstelligen Binärstring, teilt
+	 * es in zwei vierstellige Binärstrings, kodiert dann jedes einzeln und
+	 * verkettet die resultierende Kodierung in das Ergebnis String
 	 * 
 	 * @param message
 	 *            eine zu kodierende Nachricht aus ASCII-Zeichen
