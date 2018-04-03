@@ -196,6 +196,8 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 *	Diese Methode übersetzt einen String in eines boolesche Array.
+	 *			 
 	 * @param s
 	 *            ein String von Nullen und Einsen, die in ein boolesches Array
 	 *            übersetzt werden sollen.
@@ -223,6 +225,8 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 *	Diese Methode übersetzt ein boolesches Array in einen Binärstring. 
+	 *
 	 * @param a
 	 *            ein boolesches Array, das in einen String aus Nullen und Einsen
 	 *            übersetzt werden soll.
@@ -336,6 +340,10 @@ public abstract class HammingCode {
 	}
 
 	/**
+	 *	Diese Methode nimmt den Syndromvektor und sucht innerhalb der Kontrollmtrix eine Spalte,
+	 *  die die gleiche einträge als das obergenannte boolesche Array hat. Der Index dieser Spalte 
+	 *  entschpricht der Stelle des zu umwandelden falschen Bit. 
+	 *
 	 * @param col
 	 *            ein boolesches Array entsprechend dem Syndromvektor eines
 	 *            fehlerhaften Bits
