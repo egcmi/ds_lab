@@ -4,6 +4,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+
+// one thread for each connection
+// loop to listen for messages from client
+// when client sends message -> send it to all clients like so:
+// username: message
+// stop when client types "\quit"
+// tell all clients <username> left the chatroom
+// close socket
+
 public class ChatServer {
 
     public static void main (String args[]) { 
@@ -19,6 +28,7 @@ public class ChatServer {
 } 
 
 class Connection extends Thread { 
+
     DataInputStream in; 
     DataOutputStream out; 
     Socket clientSocket;
