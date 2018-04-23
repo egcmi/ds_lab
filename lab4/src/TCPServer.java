@@ -31,7 +31,7 @@ class Connection extends Thread {
 	    String data;
 		try {
 			data = in.readUTF();
-		    System.out.println("Received and echoed back \"" + data + "\" from " + clientSocket.getRemoteSocketAddress());
+		    System.out.println("Received and echoed back \"" + data + "\"");
 		    out.writeUTF(data);
 		} catch (Exception e) {e.printStackTrace();}
 	}
