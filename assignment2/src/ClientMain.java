@@ -12,9 +12,11 @@ public class ClientMain {
 		String host = scanner.nextLine();
 		System.out.print("Type port number: ");
 		int port = scanner.nextInt();
-
-		scanner.close();		
-		new ChatClient(username, host, port);
+		scanner.close();
+		
+		new ChatClient(username, host, port, true).start();
+		new ChatClient(username, host, port, false).start();
+		
 		
 	}
 
