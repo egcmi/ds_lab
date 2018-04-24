@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 // one thread for each connection
 // loop to listen for messages from client
 // when client sends message -> send it to all clients like so:

@@ -14,10 +14,9 @@ public class ClientMain {
 		int port = scanner.nextInt();
 		scanner.close();
 		
-		new ChatClient(username, host, port, true).start();
-		new ChatClient(username, host, port, false).start();
+		new ClientThread(username, host, port, true).start();
+		new ClientThread(username, host, port, false).start();
 		
 		
 	}
-
 }
