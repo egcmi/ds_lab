@@ -14,9 +14,9 @@ public class ClientMain {
 		int port = scanner.nextInt();
 		scanner.close();
 		
-		new ClientThread(username, host, port, true).start();
-		new ClientThread(username, host, port, false).start();
-		
-		
+		ClientThread reader = new ClientThread(username, host, port);
+		ClientThread writer = new ClientThread(username, host, port);
+		reader.start();
+		writer.start();
 	}
 }

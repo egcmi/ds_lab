@@ -9,19 +9,26 @@ import java.util.Scanner;
 public class ClientThread extends Thread {
 	Socket socket;
 	String username;
-	DataInputStream in;
 	DataOutputStream out;
-	boolean readInput, connection;
+	boolean connection;
+	ReadFromServer in;
 
-	public ClientThread(String username, String host, int port, boolean flag) {
+	public ClientThread(String username, String host, int port) {
 		connection = false;
 		this.username = username;
 
 		try {
 			socket = new Socket(InetAddress.getByName(host), port);
-			in = new DataInputStream(socket.getInputStream());
+			in = new ReadFromServer(new DataInputStream(socket.getInputStream()));
 			out = new DataOutputStream(socket.getOutputStream());
-			connection = true;
+			connection = socket != null && in != null && out != null;
+			if (connection) {
+				System.out.println("Connection established with " + socket.getInetAddress());
+				out.writeUTF(username + " joined the chat.");
+			} else {
+				System.out.printf("Could not connect to %s:%d\nTerminating", host, port);
+				System.exit(1);
+			}
 
 		} catch (UnknownHostException e) {
 			connection = false;
@@ -39,25 +46,17 @@ public class ClientThread extends Thread {
 	public void run() {
 		try {
 			while (connection) {
-
-				if (readInput) {
-					Scanner scanner = new Scanner(System.in);
-					String buffer = scanner.nextLine();
+				Scanner scanner = new Scanner(System.in);
+				String buffer = scanner.nextLine();
+				if (buffer.equals("/quit")) {
+					out.writeUTF(username + " left the chat."); 
+					connection = false;
+					scanner.close();
+				} else {
 					out.writeUTF(username + ": " + buffer);
-					if (buffer.equals("/quit")) {
-						connection = false;
-						scanner.close();
-					}
-				}
-
-				else {
-					String buffer = in.readUTF();
-					if (buffer != null)
-						System.out.println(buffer);
 				}
 			}
 
-			in.close();
 			out.close();
 			socket.close();
 			join();
@@ -70,9 +69,32 @@ public class ClientThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
+	private class ReadFromServer extends Thread {
+		DataInputStream in;
+
+		private ReadFromServer(DataInputStream in) {
+			this.in = in;
+		}
+
+		public void run() {
+			String buffer;
+			try {
+				while (true) {
+					buffer = in.readUTF();
+					if (buffer != null)
+						System.out.println(buffer);
+				}
+			} catch (IOException e) {
+				System.err.println("Connection error\nTerminating");
+				e.printStackTrace();
+				System.exit(1);
+			}
+
+		}
+
+	}
 	// public static void main(String args[]) {
 
 	// int serverPort = 6789;
