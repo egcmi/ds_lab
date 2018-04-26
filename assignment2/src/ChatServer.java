@@ -1,6 +1,10 @@
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -14,38 +18,47 @@ import java.net.Socket;
 
 public class ChatServer {
 
-    public static void main (String args[]) { 
-	try{
-	    int serverPort = 6789; 
-	    ServerSocket listenSocket = new ServerSocket(serverPort); 
-	    while(true) {
-	    	Socket clientSocket = listenSocket.accept(); 
-	    	Connection c = new Connection(clientSocket);
-	    }
-	} catch(IOException e) {System.out.println("Listen: " + e.getMessage());}
-    }
-} 
-
-class Connection extends Thread { 
-
-    DataInputStream in; 
-    DataOutputStream out; 
-    Socket clientSocket;
-    
-    public Connection (Socket aClientSocket) throws IOException { 
-	    clientSocket = aClientSocket;
-	    in = new DataInputStream(clientSocket.getInputStream()); 
-	    out = new DataOutputStream(clientSocket.getOutputStream()); 
-	    this.start();
-    } 
-
-    public void run(){
-	    String data;
+	public static void main(String args[]) {
 		try {
-			data = in.readUTF();
-		    System.out.println("Received and echoed back \"" + data + "\"");
-		    out.writeUTF(data);
-		} catch (Exception e) {e.printStackTrace();}
+			int serverPort = 6789;
+			ServerSocket listenSocket = new ServerSocket(serverPort);
+			while (true) {
+				Socket clientSocket = listenSocket.accept();
+				Connection c = new Connection(clientSocket);
+			}
+		} catch (IOException e) {
+			System.out.println("Listen: " + e.getMessage());
+		}
+	}
+}
+
+class Connection extends Thread {
+	PrintWriter out;
+	BufferedReader in;
+	Socket clientSocket;
+
+	public Connection(Socket aClientSocket) throws IOException {
+		clientSocket = aClientSocket;
+		in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+		out = new PrintWriter(clientSocket.getOutputStream(), true);
+		this.start();
 	}
 
+	public void run() {
+		String data;
+		try {
+			while (!clientSocket.isClosed() && (data = in.readLine()) != null) {
+				try {
+					System.out.println(data);
+					out.println("reply" + data);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 }
