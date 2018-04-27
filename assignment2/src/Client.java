@@ -7,7 +7,13 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 /**
- * @author emanuela
+ * Diese Klasse liest die Serveradresse und den Port vom Benutzer und gibt sie
+ * an den ClientHandler weiter, um eine Verbindung aufzubauen. Der Scanner wird
+ * auch als Parameter für einen Workaround übergeben, den wir in unserem Bericht
+ * erwähnt haben.
+ * 
+ * @author Emanuela Calabi - 13186
+ * @author Angelo Rosace - 13386
  *
  */
 public class Client {
@@ -35,8 +41,12 @@ public class Client {
 }
 
 /**
- * @author emanuela
- *
+ * Diese Klasse stellt eine Verbindung zum Server her, fragt nach einem
+ * Benutzernamen und führt dann die Sender- und Empfänger-Threads aus, um mit
+ * dem Server zu kommunizieren.
+ * 
+ * @author Emanuela Calabi - 13186
+ * @author Angelo Rosace - 13386
  */
 class ClientHandler {
 	Socket socket;
@@ -47,9 +57,15 @@ class ClientHandler {
 	ClientSender sender;
 
 	/**
+	 * Stellt die Verbindung zum Server her und erhält den Benutzernamen vom
+	 * Benutzer. Erstellt dann untergeordnete Sender- und Empfänger-Threads.
+	 * 
 	 * @param host
+	 *            die Server-Addresse
 	 * @param port
+	 *            der Server-Port
 	 * @param scanner
+	 *            Workaround @see Client
 	 */
 	public ClientHandler(String host, int port, Scanner scanner) {
 		try {
@@ -90,7 +106,7 @@ class ClientHandler {
 	}
 
 	/**
-	 * 
+	 * Startet die untergeordnete Sender- und Empfänger-Threads
 	 */
 	public void startChat() {
 		receiver.start();
@@ -98,7 +114,10 @@ class ClientHandler {
 	}
 
 	/**
-	 * @author emanuela
+	 * empfängt Nachrichten vom Server
+	 * 
+	 * @author Emanuela Calabi - 13186
+	 * @author Angelo Rosace - 13386
 	 *
 	 */
 	private class ClientReceiver extends Thread {
@@ -106,15 +125,24 @@ class ClientHandler {
 		DataInputStream in;
 
 		/**
+		 * erstellt den Empfänger-Thread
+		 * 
 		 * @param socket
+		 *            Verbindung zum Server
 		 * @param in
+		 *            eingehender Eingangsstrom vom Server
 		 */
 		private ClientReceiver(Socket socket, DataInputStream in) {
 			this.socket = socket;
 			this.in = in;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * schleift für eingehende Nachrichten vom Server, bis die Verbindung
+		 * geschlossen wird, und druckt sie auf der Konsole aus.
+		 * 
 		 * @see java.lang.Thread#run()
 		 */
 		public void run() {
@@ -130,7 +158,10 @@ class ClientHandler {
 	}
 
 	/**
-	 * @author emanuela
+	 * liest Nachrichten vom Benutzer und sendet sie an den Server
+	 * 
+	 * @author Emanuela Calabi - 13186
+	 * @author Angelo Rosace - 13386
 	 *
 	 */
 	private class ClientSender extends Thread {
@@ -139,9 +170,15 @@ class ClientHandler {
 		Scanner scanner;
 
 		/**
+		 * erstellt den Sender-Thread
+		 * 
 		 * @param socket
+		 *            Verbindung zum Server
+		 * 
 		 * @param out
+		 *            ausgehender Ausgangsdatenstrom zum Server
 		 * @param scanner
+		 *            Workaround @see Client
 		 */
 		private ClientSender(Socket socket, DataOutputStream out, Scanner scanner) {
 			this.socket = socket;
@@ -149,7 +186,13 @@ class ClientHandler {
 			this.scanner = scanner;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * es schleift für Benutzereingaben und sendet sie an den Server, bis die
+		 * Verbindung nicht geschlossen wird. Wenn der Benutzer "/quit" eingibt, wird
+		 * die Verbindung geschlossen und das Programm beendet.
+		 * 
 		 * @see java.lang.Thread#run()
 		 */
 		public void run() {
