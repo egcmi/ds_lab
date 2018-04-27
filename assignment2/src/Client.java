@@ -6,26 +6,38 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
+/**
+ * @author emanuela
+ *
+ */
 public class Client {
 
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
-
-		// ask user for username, host address and port
-		System.out.print("Type your username: ");
-		String username = scanner.nextLine();
-		System.out.print("Type server address: ");
+		System.out.print("Enter server address: ");
 		String host = scanner.nextLine();
-		System.out.print("Type port number: ");
-		int port = scanner.nextInt();
+		int port;
+		while (true) {
+			System.out.print("Enter port number: ");
+			if (scanner.hasNextInt()) {
+				port = scanner.nextInt();
+				if (port < 0xFFFF)
+					break;
+			}
+			scanner.nextLine();
+			System.out.println("Not a valid port number.");
+		}
 		scanner.nextLine();
-		scanner.close();
 
-		ClientHandler conn = new ClientHandler(username, host, port);
+		ClientHandler conn = new ClientHandler(host, port, scanner);
 		conn.startChat();
 	}
 }
 
+/**
+ * @author emanuela
+ *
+ */
 class ClientHandler {
 	Socket socket;
 	String username;
@@ -34,19 +46,40 @@ class ClientHandler {
 	ClientReceiver receiver;
 	ClientSender sender;
 
-	public ClientHandler(String username, String host, int port) {
-		this.username = username;
-
+	/**
+	 * @param host
+	 * @param port
+	 * @param scanner
+	 */
+	public ClientHandler(String host, int port, Scanner scanner) {
 		try {
 			socket = new Socket(InetAddress.getByName(host), port);
-			in = new DataInputStream(socket.getInputStream());
-			out = new DataOutputStream(socket.getOutputStream());
 			System.out.printf("Connection established with host %s at port %d.\n", socket.getInetAddress(),
 					socket.getPort());
-			sender = new ClientSender(socket, out);
-			receiver = new ClientReceiver(socket, in);
-			out.writeUTF(username + " joined the chat.");
 
+			in = new DataInputStream(socket.getInputStream());
+			out = new DataOutputStream(socket.getOutputStream());
+
+			username = "";
+			String msg = "";
+			while (true) {
+				System.out.print("Enter your username: ");
+				username = scanner.nextLine();
+				if (username.length() == 0) {
+					System.out.println("Username too short.");
+					continue;
+				}
+				out.writeUTF(username);
+				msg = in.readUTF();
+				if (msg.equals("y")) {
+					System.out.printf("You are now logged in as %s. Type \"/quit\" to exit.\n", username);
+					break;
+				}
+				System.out.printf("Username %s is already taken.\n", username);
+				username = null;
+			}
+			sender = new ClientSender(socket, out, scanner);
+			receiver = new ClientReceiver(socket, in);
 		} catch (UnknownHostException e) {
 			System.err.printf("Unknown host %s. Terminating.\n", host);
 			System.exit(1);
@@ -56,74 +89,83 @@ class ClientHandler {
 		}
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
+	/**
+	 * 
+	 */
 	public void startChat() {
 		receiver.start();
 		sender.start();
-		System.out.println("started");
 	}
 
+	/**
+	 * @author emanuela
+	 *
+	 */
 	private class ClientReceiver extends Thread {
 		Socket socket;
 		DataInputStream in;
 
+		/**
+		 * @param socket
+		 * @param in
+		 */
 		private ClientReceiver(Socket socket, DataInputStream in) {
 			this.socket = socket;
 			this.in = in;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		public void run() {
-			System.out.println("started receiver");
 			try {
 				while (!socket.isClosed()) {
-					if (in.available() > 0)
-						System.out.println(in.readUTF());
+					System.out.println(in.readUTF());
 				}
 			} catch (IOException e) {
-				System.err.println("Connection error. Terminating.");
-				e.printStackTrace();
+				System.err.println("Disconnected. Terminating.");
 				System.exit(1);
 			}
-
 		}
-
 	}
 
+	/**
+	 * @author emanuela
+	 *
+	 */
 	private class ClientSender extends Thread {
 		Socket socket;
 		DataOutputStream out;
+		Scanner scanner;
 
-		private ClientSender(Socket socket, DataOutputStream out) {
+		/**
+		 * @param socket
+		 * @param out
+		 * @param scanner
+		 */
+		private ClientSender(Socket socket, DataOutputStream out, Scanner scanner) {
 			this.socket = socket;
 			this.out = out;
+			this.scanner = scanner;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
 		public void run() {
-			System.out.println("started sender");
-			Scanner stdin = new Scanner(System.in);
 			String input;
-			System.out.println("wtffff " + !socket.isClosed());
 			try {
-				while (!socket.isClosed()) {
-					System.out.println("client sender entered while loop");
-
-					input = stdin.nextLine();
-					System.out.println("input: " + input);
+				while (true) {
+					input = scanner.nextLine();
+					out.writeUTF(input);
 					if (input.equals("/quit")) {
-						out.writeUTF(input);
-						stdin.close();
+						scanner.close();
 						socket.close();
-					} else {
-						out.writeUTF(username + ": " + input);
+						break;
 					}
 				}
-				System.out.println("client sender exited while loop");
 			} catch (IOException e) {
-				System.err.println("Connection error. Terminating.");
-				e.printStackTrace();
+				System.err.println("Disconnected. Terminating.");
 				System.exit(1);
 			}
 		}
