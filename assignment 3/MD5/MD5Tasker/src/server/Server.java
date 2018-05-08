@@ -14,12 +14,13 @@ public class Server {
 		// How many problems will be generated
 		int RUNS = 10; // Integer.parseInt(args[0]);
 
-		// In client does not succeed in contacting server due to wrong remote reference:
-		// Uncomment and set server hostname to the IP external IP address of the server host
-		// On some some systems, this property defaults to 127.0.0.1, the localhost address,
+		// If client does not succeed in contacting server due to wrong remote reference:
+		// Uncomment and set server hostname to the external IP address of the server host
+		// On some systems, this property defaults to 127.0.0.1, the localhost address,
 		// which causes problems.
 		// 
-		// System.setProperty("java.rmi.server.hostname", "10.7.162.144");
+		//System.setProperty("java.rmi.server.hostname", "10.7.162.144");
+		System.setProperty("java.rmi.server.hostname", "169.254.195.79");
 		
 		LocateRegistry.createRegistry(1099);
 		HashMap<String,Integer> scoreMap = new HashMap<String,Integer>();
